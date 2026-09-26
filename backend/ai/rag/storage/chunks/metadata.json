@@ -1,0 +1,94 @@
+[
+    {
+        "text": "eRTMAC-NWIS Synthetic Drilling Report Daily Drilling Report — Well W104 Field: Demo North Field Location: Synthetic Block A Well ID: W104 Total Depth: 2850 m Primary Formation: Barail Formation Drilling Parameters Parameter Recorded value Average ROP 17. 5 m/hr Mud Weight 1. 18 SG Average Torque 11. 2 kN·m Maximum Torque 14. 0 kN·m Pump Rate 1850 L/min ECD 1. 23 SG Historical Drilling Events • At 2410 m MD, partial mud loss was observed at an estimated 4–6 m³/hr. • At 2465 m MD, torque increased from 9 kN·m to 14 kN·m during a connection. • A short wiper trip was performed from 2470 m to 2380 m MD. • Mud weight was increased from 1. 16 SG to 1. 18 SG after the mud-loss event. Operational Conclusions • The interval around 2410–2470 m MD should be treated as a historical problem zone in this synthetic dataset. • The main recorded events were partial mud loss and a torque spike. Prototype notice: This synthetic report is created only for testing the NWIS RAG pipeline. It is not an actual Oil India Limited operational record and must not be used for real drilling decisions.",
+        "document": "W104_DDR.pdf",
+        "page": 1,
+        "chunk_index": 0,
+        "global_chunk_index": 0,
+        "well_id": "W104",
+        "depths": [
+            2470.0,
+            2380.0,
+            2410.0,
+            2465.0
+        ],
+        "formation": "Barail Formation Drilling Parameters Parameter Recorded value",
+        "events": [
+            {
+                "event": "mud_loss",
+                "depth": "2410 m MD",
+                "measurement": "4–6 m³/hr",
+                "evidence": "At 2410 m MD, partial mud loss was observed at an estimated 4–6 m³/hr."
+            },
+            {
+                "event": "torque_increase",
+                "depth": "2465 m MD",
+                "measurement": "9 → 14 kN·m",
+                "evidence": "At 2465 m MD, torque increased from 9 kN·m to 14 kN·m during a connection."
+            },
+            {
+                "event": "wiper_trip",
+                "depth": "2470 m MD → 2380 m MD",
+                "measurement": "Not specified",
+                "evidence": "A short wiper trip was performed from 2470 m to 2380 m MD."
+            }
+        ],
+        "historical_problem_intervals": [
+            {
+                "start_depth": 2410.0,
+                "end_depth": 2470.0,
+                "unit": "m MD"
+            }
+        ]
+    },
+    {
+        "text": "eRTMAC-NWIS Synthetic Drilling Report Daily Drilling Report — Well W105 Field: Demo North Field Location: Synthetic Block A Well ID: W105 Total Depth: 3010 m Primary Formation: Barail Formation Drilling Parameters Parameter Recorded value Average ROP 16. 2 m/hr Mud Weight 1. 19 SG Average Torque 12. 0 kN·m Maximum Torque 16. 0 kN·m Pump Rate 1900 L/min ECD 1. 25 SG Historical Drilling Events • At 2580 m MD, a 3 m³/hr increase in mud losses was recorded for approximately 25 minutes. • At 2630 m MD, a transient torque spike reached 16 kN·m. • At 2642 m MD, drag increased while pulling out of hole. • The well was circulated at 1900 L/min before drilling resumed. Operational Conclusions • Historical instability was concentrated between approximately 2580 and 2642 m MD. • Mud-loss and torque-related events occurred in the same depth interval. Prototype notice: This synthetic report is created only for testing the NWIS RAG pipeline. It is not an actual Oil India Limited operational record and must not be used for real drilling decisions.",
+        "document": "W105_DDR.pdf",
+        "page": 1,
+        "chunk_index": 0,
+        "global_chunk_index": 1,
+        "well_id": "W105",
+        "depths": [
+            2580.0,
+            2630.0,
+            2642.0
+        ],
+        "formation": "Barail Formation Drilling Parameters Parameter Recorded value",
+        "events": [
+            {
+                "event": "mud_loss",
+                "depth": "2580 m MD",
+                "measurement": "3 m³/hr",
+                "evidence": "At 2580 m MD, a 3 m³/hr increase in mud losses was recorded for approximately 25 minutes."
+            },
+            {
+                "event": "torque_spike",
+                "depth": "2630 m MD",
+                "measurement": "16 kN·m",
+                "evidence": "At 2630 m MD, a transient torque spike reached 16 kN·m."
+            },
+            {
+                "event": "drag_increase",
+                "depth": "2642 m MD",
+                "measurement": "Not specified",
+                "evidence": "At 2642 m MD, drag increased while pulling out of hole."
+            }
+        ],
+        "historical_problem_intervals": []
+    },
+    {
+        "text": "eRTMAC-NWIS Synthetic Drilling Report Well Completion Report — Well W106 Field: Demo North Field Location: Synthetic Block A Well ID: W106 Total Depth: 3220 m Primary Formation: Barail Formation Drilling Parameters Parameter Recorded value Final Depth 3220 m Casing Depth 2700 m Casing Size 13 3/8 in Cement Top 1980 m Formation Barail Formation Well Status Completed Historical Drilling Events • Casing was set at 2700 m MD with a synthetic 13 3/8 inch casing string. • A cementing operation was completed with a reported top of cement at 1980 m MD. • A pressure test was conducted after the cementing operation with no synthetic failure recorded. • Historical review identified the 2580–2650 m interval as a nearby interval with drilling-event observations in W105. Operational Conclusions • W106 provides completion context for the same synthetic field and formation. • The report cross-references the 2580–2650 m interval as a historical knowledge zone based on W105. Prototype notice: This synthetic report is created only for testing the NWIS RAG pipeline. It is not an actual Oil India Limited operational record and must not be used for real drilling decisions.",
+        "document": "W106_WCR.pdf",
+        "page": 1,
+        "chunk_index": 0,
+        "global_chunk_index": 2,
+        "well_id": "W106",
+        "depths": [
+            2700.0,
+            1980.0
+        ],
+        "formation": "Barail Formation Drilling Parameters Parameter Recorded value Final Depth 3220 m Casing",
+        "events": [],
+        "historical_problem_intervals": []
+    }
+]

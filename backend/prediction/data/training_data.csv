@@ -1,0 +1,21 @@
+well_id,depth_m,rop_m_hr,mud_weight_sg,torque_knm,ecd_sg,pump_rate_l_min,distance_km,formation,event
+W104,2350,18.0,1.16,10.5,1.21,1850,0.0,Barail Formation,normal
+W104,2410,17.5,1.16,11.2,1.23,1850,0.0,Barail Formation,mud_loss
+W104,2440,17.3,1.18,12.0,1.23,1850,0.0,Barail Formation,normal
+W104,2465,17.2,1.18,14.0,1.23,1850,0.0,Barail Formation,torque_spike
+W104,2470,17.0,1.18,13.5,1.23,1850,0.0,Barail Formation,wiper_trip
+W105,2500,16.5,1.19,12.0,1.25,1900,2.67,Barail Formation,normal
+W105,2580,16.2,1.19,12.0,1.25,1900,2.67,Barail Formation,mud_loss
+W105,2600,16.0,1.19,13.0,1.25,1900,2.67,Barail Formation,normal
+W105,2630,15.8,1.19,16.0,1.25,1900,2.67,Barail Formation,torque_spike
+W105,2642,15.7,1.19,15.5,1.25,1900,2.67,Barail Formation,drag
+W106,2500,17.0,1.18,11.0,1.22,1880,6.81,Barail Formation,normal
+W106,2580,16.8,1.18,11.5,1.23,1880,6.81,Barail Formation,normal
+W106,2630,16.7,1.18,12.0,1.23,1880,6.81,Barail Formation,normal
+W106,2650,16.5,1.18,12.5,1.23,1880,6.81,Barail Formation,normal
+W104,2200,18.5,1.15,9.5,1.2,1800,0.0,Barail Formation,normal
+W105,2300,17.2,1.18,10.5,1.22,1880,2.67,Barail Formation,normal
+W106,2400,17.4,1.17,10.8,1.22,1850,6.81,Barail Formation,normal
+W104,2520,16.8,1.18,12.5,1.24,1860,0.0,Barail Formation,normal
+W105,2700,15.5,1.2,13.5,1.26,1920,2.67,Barail Formation,normal
+W106,2750,16.2,1.19,12.8,1.25,1900,6.81,Barail Formation,normal
