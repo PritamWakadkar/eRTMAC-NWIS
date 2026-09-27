@@ -32,7 +32,7 @@ class LLM:
                 think=False,
                 options={
                     "temperature": 0,
-                    "num_predict": 120,
+                    "num_predict": 1200,
                     "top_p": 0.8
                 }
             )

@@ -9,536 +9,966 @@ import {
 } from "react-leaflet";
 
 import L from "leaflet";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+
 import "leaflet/dist/leaflet.css";
 
 
-/* =========================================================
-   FIX DEFAULT LEAFLET MARKER ICONS
-========================================================= */
+// ============================================================
+// LEAFLET DEFAULT ICONS
+// ============================================================
 
-delete L.Icon.Default.prototype._getIconUrl;
+// Import Leaflet images directly from the installed package.
+// This avoids depending on an external CDN.
 
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
-    iconUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
 
-    shadowUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+// ============================================================
+// TARGET WELL ICON - RED
+// ============================================================
+
+const targetIcon = L.divIcon({
+
+    className: "target-well-marker",
+
+    html: `
+        <div style="
+            position: relative;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        ">
+
+            <!-- Outer glow -->
+
+            <div style="
+                position: absolute;
+                width: 38px;
+                height: 38px;
+                border-radius: 50%;
+                background: rgba(220, 38, 38, 0.20);
+                animation: targetPulse 2s infinite;
+            "></div>
+
+
+            <!-- Red pin -->
+
+            <div style="
+                position: relative;
+                width: 30px;
+                height: 30px;
+                background: #dc2626;
+                border: 3px solid #ffffff;
+                border-radius: 50% 50% 50% 0;
+                transform: rotate(-45deg);
+                box-shadow:
+                    0 3px 10px rgba(0, 0, 0, 0.40);
+                z-index: 2;
+            ">
+
+                <!-- White center -->
+
+                <div style="
+                    position: absolute;
+                    width: 9px;
+                    height: 9px;
+                    background: #ffffff;
+                    border-radius: 50%;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                "></div>
+
+            </div>
+
+        </div>
+    `,
+
+    iconSize: [38, 38],
+
+    iconAnchor: [19, 38],
+
+    popupAnchor: [0, -38],
+
 });
 
 
-/* =========================================================
-   TARGET WELL ICON
-========================================================= */
-
-const targetIcon = new L.Icon({
-    iconUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-
-    shadowUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-
-    shadowSize: [41, 41],
-});
-
-
-/* =========================================================
-   NEARBY WELL ICON
-========================================================= */
+// ============================================================
+// NEARBY WELL ICON
+// ============================================================
 
 const nearbyIcon = new L.Icon({
-    iconUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+
+    iconRetinaUrl: markerIcon2x,
+
+    iconUrl: markerIcon,
+
+    shadowUrl: markerShadow,
 
     iconSize: [25, 41],
+
     iconAnchor: [12, 41],
+
     popupAnchor: [1, -34],
 
-    shadowUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-
     shadowSize: [41, 41],
+
 });
 
 
-/* =========================================================
-   MAP UPDATER
-========================================================= */
+// ============================================================
+// MAP VIEW UPDATER
+// ============================================================
 
-function MapUpdater({ target }) {
+function MapUpdater({
+    latitude,
+    longitude,
+}) {
+
     const map = useMap();
 
-    useEffect(() => {
-        if (
-            target?.latitude != null &&
-            target?.longitude != null
-        ) {
-            const latitude = Number(target.latitude);
-            const longitude = Number(target.longitude);
 
-            if (
-                Number.isFinite(latitude) &&
-                Number.isFinite(longitude)
-            ) {
-                map.setView(
-                    [latitude, longitude],
-                    12
-                );
-            }
+    useEffect(() => {
+
+        const lat =
+            Number(latitude);
+
+        const lng =
+            Number(longitude);
+
+
+        if (
+            Number.isFinite(lat) &&
+            Number.isFinite(lng)
+        ) {
+
+            map.setView(
+                [lat, lng],
+                12,
+                {
+                    animate: true,
+                }
+            );
+
         }
+
     }, [
         map,
-        target?.latitude,
-        target?.longitude,
+        latitude,
+        longitude,
     ]);
+
 
     return null;
 }
 
 
-/* =========================================================
-   WELL MAP
-========================================================= */
+// ============================================================
+// FIT MAP TO ALL WELLS
+// ============================================================
+
+function MapBoundsUpdater({
+    targetPosition,
+    nearbyWells,
+}) {
+
+    const map = useMap();
+
+
+    useEffect(() => {
+
+        const positions = [
+            targetPosition,
+        ];
+
+
+        nearbyWells.forEach(
+            (well) => {
+
+                const lat =
+                    Number(
+                        well.latitude
+                    );
+
+                const lng =
+                    Number(
+                        well.longitude
+                    );
+
+
+                if (
+                    Number.isFinite(lat) &&
+                    Number.isFinite(lng)
+                ) {
+
+                    positions.push([
+                        lat,
+                        lng,
+                    ]);
+
+                }
+
+            }
+        );
+
+
+        if (positions.length > 1) {
+
+            const bounds =
+                L.latLngBounds(
+                    positions
+                );
+
+
+            map.fitBounds(
+                bounds,
+                {
+                    padding: [50, 50],
+
+                    maxZoom: 12,
+
+                }
+            );
+
+        }
+
+    }, [
+        map,
+        targetPosition,
+        nearbyWells,
+    ]);
+
+
+    return null;
+}
+
+
+// ============================================================
+// WELL MAP
+// ============================================================
 
 function WellMap({
+
     targetWell,
+
     nearbyWells = [],
+
     radiusKm = 10,
+
 }) {
-    /* -----------------------------------------------------
-       Validate target well
-    ----------------------------------------------------- */
 
-    if (
-        !targetWell ||
-        targetWell.latitude == null ||
-        targetWell.longitude == null
-    ) {
+    // ========================================================
+    // VALIDATE TARGET
+    // ========================================================
+
+    if (!targetWell) {
+
         return (
-            <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
-                <p className="text-sm font-medium text-red-500">
-                    Location data for the target well is not available.
+
+            <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-8 text-center">
+
+                <p className="text-sm font-semibold text-slate-500">
+                    No target well selected.
                 </p>
+
             </div>
+
         );
+
     }
 
 
-    /* -----------------------------------------------------
-       Validate coordinates
-    ----------------------------------------------------- */
+    // ========================================================
+    // TARGET COORDINATES
+    // ========================================================
 
-    const targetLatitude = Number(targetWell.latitude);
-    const targetLongitude = Number(targetWell.longitude);
+    const latitude =
+        Number(
+            targetWell.latitude
+        );
+
+
+    const longitude =
+        Number(
+            targetWell.longitude
+        );
+
+
+    // ========================================================
+    // INVALID COORDINATES
+    // ========================================================
 
     if (
-        !Number.isFinite(targetLatitude) ||
-        !Number.isFinite(targetLongitude)
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude)
     ) {
+
         return (
-            <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
-                <p className="text-sm font-medium text-red-500">
-                    Invalid location coordinates for the target well.
-                </p>
+
+            <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-8">
+
+                <div className="text-center">
+
+                    <p className="text-base font-extrabold text-amber-800">
+                        Map location unavailable
+                    </p>
+
+
+                    <p className="mt-2 text-sm text-amber-700">
+
+                        Coordinates for{" "}
+
+                        {targetWell.well_id || "the target well"}
+
+                        {" "}were not returned by the backend.
+
+                    </p>
+
+                </div>
+
             </div>
+
         );
+
     }
 
 
-    /* -----------------------------------------------------
-       Normalize nearby wells
-    ----------------------------------------------------- */
+    // ========================================================
+    // TARGET POSITION
+    // ========================================================
 
-    const safeNearbyWells = Array.isArray(nearbyWells)
-        ? nearbyWells
-        : [];
-
-
-    /* -----------------------------------------------------
-       Target position
-    ----------------------------------------------------- */
-
-    const targetPosition = [
-        targetLatitude,
-        targetLongitude,
-    ];
+    const targetPosition = useMemo(
+        () => [
+            latitude,
+            longitude,
+        ],
+        [
+            latitude,
+            longitude,
+        ]
+    );
 
 
-    /* -----------------------------------------------------
-       Radius
-    ----------------------------------------------------- */
+    // ========================================================
+    // VALID NEARBY WELLS
+    // ========================================================
 
-    const safeRadiusKm =
-        Number.isFinite(Number(radiusKm)) && Number(radiusKm) > 0
-            ? Number(radiusKm)
-            : 10;
+    const validNearbyWells =
+        nearbyWells.filter(
+            (well) => {
 
+                const lat =
+                    Number(
+                        well.latitude
+                    );
+
+                const lng =
+                    Number(
+                        well.longitude
+                    );
+
+
+                return (
+                    Number.isFinite(lat) &&
+                    Number.isFinite(lng)
+                );
+
+            }
+        );
+
+
+    // ========================================================
+    // MAP KEY
+    // ========================================================
+
+    const mapKey =
+        `${targetWell.well_id}-${latitude}-${longitude}`;
+
+
+    // ========================================================
+    // RENDER
+    // ========================================================
 
     return (
-        <section className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
 
-            {/* =================================================
-                MAP HEADER
+        <section className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+
+            {/* ==================================================
+                HEADER
             ================================================== */}
 
-            <div className="flex items-start justify-between gap-6 border-b border-slate-100 pb-5 max-sm:flex-col">
+            <div className="border-b border-slate-100 p-6">
 
-                <div>
-                    <span className="text-[10px] font-extrabold tracking-[1.5px] text-blue-600">
-                        POSTGIS LOCATION
-                    </span>
+                <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
 
-                    <h2 className="mt-1.5 text-2xl font-extrabold text-[#172033]">
-                        Nearby Wells Map
-                    </h2>
+                    <div>
 
-                    <p className="mt-1.5 text-xs leading-6 text-slate-500">
-                        Spatial relationship between the target
-                        well and nearby wells.
-                    </p>
-                </div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-[1.5px] text-blue-600">
+                            POSTGIS LOCATION
+                        </p>
 
 
-                {/* Map information */}
+                        <h2 className="mt-1.5 text-2xl font-extrabold text-[#172033]">
+                            Nearby Wells Map
+                        </h2>
 
-                <div className="flex shrink-0 flex-col items-end gap-2 text-xs text-slate-500 max-sm:w-full max-sm:items-start">
 
-                    <span>
-                        Target:{" "}
-                        <strong className="font-extrabold text-slate-700">
-                            {targetWell.well_id || "Unknown"}
-                        </strong>
-                    </span>
+                        <p className="mt-1.5 text-sm text-slate-500">
+                            Spatial relationship between the target
+                            well and nearby wells.
+                        </p>
 
-                    <span>
-                        Radius:{" "}
-                        <strong className="font-extrabold text-blue-600">
-                            {safeRadiusKm} km
-                        </strong>
-                    </span>
+                    </div>
+
+
+                    {/* ==================================================
+                        MAP INFO
+                    ================================================== */}
+
+                    <div className="flex flex-wrap gap-2">
+
+                        {/* TARGET */}
+
+                        <span className="flex items-center gap-2 rounded-full bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700">
+
+                            <span className="h-2.5 w-2.5 rounded-full bg-red-600"></span>
+
+                            Target:
+
+                            {targetWell.well_id}
+
+                        </span>
+
+
+                        {/* RADIUS */}
+
+                        <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600">
+
+                            Radius:
+
+                            {" "}
+
+                            {radiusKm} km
+
+                        </span>
+
+
+                        {/* NEARBY */}
+
+                        <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+
+                            {validNearbyWells.length} nearby
+
+                        </span>
+
+                    </div>
 
                 </div>
 
             </div>
 
 
-            {/* =================================================
+            {/* ==================================================
                 MAP
             ================================================== */}
 
-            <div className="mt-5 overflow-hidden rounded-xl border border-slate-200">
+            <div className="relative h-[520px] w-full bg-slate-100">
 
                 <MapContainer
+
+                    key={mapKey}
+
                     center={targetPosition}
+
                     zoom={12}
+
                     scrollWheelZoom={true}
-                    style={{
-                        height: "500px",
-                        width: "100%",
-                    }}
+
+                    zoomControl={true}
+
+                    className="h-full w-full"
+
                 >
 
-                    {/* OpenStreetMap */}
+                    {/* ==================================================
+                        OPEN STREET MAP
+                    ================================================== */}
 
                     <TileLayer
-                        attribution="&copy; OpenStreetMap contributors"
+
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+
                     />
 
 
-                    {/* Automatically center map */}
+                    {/* ==================================================
+                        MAP VIEW UPDATE
+                    ================================================== */}
 
                     <MapUpdater
-                        target={targetWell}
+
+                        latitude={latitude}
+
+                        longitude={longitude}
+
                     />
 
 
-                    {/* Search radius */}
+                    {/* ==================================================
+                        FIT ALL WELLS
+                    ================================================== */}
+
+                    <MapBoundsUpdater
+
+                        targetPosition={
+                            targetPosition
+                        }
+
+                        nearbyWells={
+                            validNearbyWells
+                        }
+
+                    />
+
+
+                    {/* ==================================================
+                        SEARCH RADIUS
+                    ================================================== */}
 
                     <Circle
-                        center={targetPosition}
-                        radius={safeRadiusKm * 1000}
+
+                        center={
+                            targetPosition
+                        }
+
+                        radius={
+                            Number(radiusKm) * 1000
+                        }
+
                         pathOptions={{
+
                             fillOpacity: 0.08,
+
+                            weight: 2,
+
                         }}
+
                     />
 
 
-                    {/* =================================================
-                        TARGET WELL
+                    {/* ==================================================
+                        TARGET WELL - RED MARKER
                     ================================================== */}
 
                     <Marker
-                        position={targetPosition}
-                        icon={targetIcon}
+
+                        position={
+                            targetPosition
+                        }
+
+                        icon={
+                            targetIcon
+                        }
+
                     >
+
                         <Popup>
 
-                            <div className="min-w-[180px] p-1">
+                            <div className="min-w-[200px]">
 
-                                <h3 className="mb-2 text-base font-extrabold text-[#172033]">
-                                    🎯 {targetWell.well_id || "Unknown Well"}
-                                </h3>
+                                <div className="flex items-center gap-2">
 
-                                <p className="text-xs leading-6 text-slate-600">
-                                    <strong className="font-bold text-slate-800">
-                                        Target Well
-                                    </strong>
-                                </p>
+                                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100">
+
+                                        🎯
+
+                                    </span>
+
+
+                                    <div>
+
+                                        <h3 className="text-base font-extrabold text-slate-900">
+
+                                            {targetWell.well_id}
+
+                                        </h3>
+
+
+                                        <p className="text-xs font-bold text-red-600">
+
+                                            Target Well
+
+                                        </p>
+
+                                    </div>
+
+                                </div>
 
 
                                 {targetWell.formation && (
-                                    <p className="text-xs leading-6 text-slate-600">
-                                        Formation:{" "}
+
+                                    <p className="mt-3 text-xs text-slate-600">
+
+                                        <strong>
+                                            Formation:
+                                        </strong>
+
+                                        {" "}
+
                                         {targetWell.formation}
+
                                     </p>
+
                                 )}
 
 
                                 {targetWell.total_depth != null && (
-                                    <p className="text-xs leading-6 text-slate-600">
-                                        Total Depth:{" "}
+
+                                    <p className="mt-1 text-xs text-slate-600">
+
+                                        <strong>
+                                            Total Depth:
+                                        </strong>
+
+                                        {" "}
+
                                         {targetWell.total_depth} m
+
                                     </p>
+
                                 )}
 
 
-                                <p className="text-xs leading-6 text-slate-600">
-                                    Latitude:{" "}
-                                    {targetLatitude}
-                                </p>
+                                <p className="mt-1 text-xs text-slate-500">
 
+                                    <strong>
+                                        Coordinates:
+                                    </strong>
 
-                                <p className="text-xs leading-6 text-slate-600">
-                                    Longitude:{" "}
-                                    {targetLongitude}
+                                    {" "}
+
+                                    {latitude.toFixed(5)},
+
+                                    {" "}
+
+                                    {longitude.toFixed(5)}
+
                                 </p>
 
                             </div>
 
                         </Popup>
+
                     </Marker>
 
 
-                    {/* =================================================
+                    {/* ==================================================
                         NEARBY WELLS
                     ================================================== */}
 
-                    {safeNearbyWells.map((well, index) => {
+                    {validNearbyWells.map(
+                        (well) => {
 
-                        if (
-                            !well ||
-                            well.latitude == null ||
-                            well.longitude == null
-                        ) {
-                            return null;
+                            const wellPosition = [
+
+                                Number(
+                                    well.latitude
+                                ),
+
+                                Number(
+                                    well.longitude
+                                ),
+
+                            ];
+
+
+                            return (
+
+                                <Marker
+
+                                    key={
+                                        `well-${well.well_id}`
+                                    }
+
+                                    position={
+                                        wellPosition
+                                    }
+
+                                    icon={
+                                        nearbyIcon
+                                    }
+
+                                >
+
+                                    <Popup>
+
+                                        <div className="min-w-[190px]">
+
+                                            <div className="flex items-center gap-2">
+
+                                                <span className="text-lg">
+                                                    📍
+                                                </span>
+
+
+                                                <div>
+
+                                                    <h3 className="text-base font-extrabold text-slate-900">
+
+                                                        {well.well_id}
+
+                                                    </h3>
+
+
+                                                    <p className="text-xs font-bold text-emerald-600">
+
+                                                        Nearby Well
+
+                                                    </p>
+
+                                                </div>
+
+                                            </div>
+
+
+                                            {well.distance_km != null && (
+
+                                                <p className="mt-3 text-xs text-slate-600">
+
+                                                    <strong>
+                                                        Distance:
+                                                    </strong>
+
+                                                    {" "}
+
+                                                    {well.distance_km} km
+
+                                                </p>
+
+                                            )}
+
+
+                                            {well.formation && (
+
+                                                <p className="mt-1 text-xs text-slate-600">
+
+                                                    <strong>
+                                                        Formation:
+                                                    </strong>
+
+                                                    {" "}
+
+                                                    {well.formation}
+
+                                                </p>
+
+                                            )}
+
+
+                                            {well.total_depth != null && (
+
+                                                <p className="mt-1 text-xs text-slate-600">
+
+                                                    <strong>
+                                                        Total Depth:
+                                                    </strong>
+
+                                                    {" "}
+
+                                                    {well.total_depth} m
+
+                                                </p>
+
+                                            )}
+
+                                        </div>
+
+                                    </Popup>
+
+                                </Marker>
+
+                            );
+
                         }
+                    )}
 
 
-                        const latitude = Number(well.latitude);
-                        const longitude = Number(well.longitude);
-
-
-                        if (
-                            !Number.isFinite(latitude) ||
-                            !Number.isFinite(longitude)
-                        ) {
-                            return null;
-                        }
-
-
-                        const nearbyPosition = [
-                            latitude,
-                            longitude,
-                        ];
-
-
-                        const distance =
-                            well.distance_km != null
-                                ? Number(well.distance_km).toFixed(2)
-                                : "N/A";
-
-
-                        return (
-                            <Marker
-                                key={
-                                    well.well_id ||
-                                    `nearby-${index}`
-                                }
-                                position={nearbyPosition}
-                                icon={nearbyIcon}
-                            >
-
-                                <Popup>
-
-                                    <div className="min-w-[180px] p-1">
-
-                                        <h3 className="mb-2 text-base font-extrabold text-[#172033]">
-                                            🔵{" "}
-                                            {well.well_id ||
-                                                "Unknown Well"}
-                                        </h3>
-
-
-                                        <p className="text-xs leading-6 text-slate-600">
-                                            <strong className="font-bold text-slate-800">
-                                                Nearby Well
-                                            </strong>
-                                        </p>
-
-
-                                        <p className="text-xs leading-6 text-slate-600">
-                                            Distance:{" "}
-                                            {distance} km
-                                        </p>
-
-
-                                        {well.formation && (
-                                            <p className="text-xs leading-6 text-slate-600">
-                                                Formation:{" "}
-                                                {well.formation}
-                                            </p>
-                                        )}
-
-
-                                        {well.total_depth != null && (
-                                            <p className="text-xs leading-6 text-slate-600">
-                                                Total Depth:{" "}
-                                                {well.total_depth} m
-                                            </p>
-                                        )}
-
-
-                                        <p className="text-xs leading-6 text-slate-600">
-                                            Latitude:{" "}
-                                            {latitude}
-                                        </p>
-
-
-                                        <p className="text-xs leading-6 text-slate-600">
-                                            Longitude:{" "}
-                                            {longitude}
-                                        </p>
-
-                                    </div>
-
-                                </Popup>
-
-                            </Marker>
-                        );
-                    })}
-
-
-                    {/* =================================================
-                        TARGET → NEARBY CONNECTIONS
+                    {/* ==================================================
+                        CONNECTION LINES
                     ================================================== */}
 
-                    {safeNearbyWells.map((well, index) => {
+                    {validNearbyWells.map(
+                        (well) => {
 
-                        if (
-                            !well ||
-                            well.latitude == null ||
-                            well.longitude == null
-                        ) {
-                            return null;
+                            const nearbyPosition = [
+
+                                Number(
+                                    well.latitude
+                                ),
+
+                                Number(
+                                    well.longitude
+                                ),
+
+                            ];
+
+
+                            return (
+
+                                <Polyline
+
+                                    key={
+                                        `line-${well.well_id}`
+                                    }
+
+                                    positions={[
+                                        targetPosition,
+                                        nearbyPosition,
+                                    ]}
+
+                                    pathOptions={{
+
+                                        dashArray:
+                                            "6 8",
+
+                                        weight: 2,
+
+                                    }}
+
+                                />
+
+                            );
+
                         }
-
-
-                        const latitude = Number(well.latitude);
-                        const longitude = Number(well.longitude);
-
-
-                        if (
-                            !Number.isFinite(latitude) ||
-                            !Number.isFinite(longitude)
-                        ) {
-                            return null;
-                        }
-
-
-                        return (
-                            <Polyline
-                                key={
-                                    `line-${well.well_id || index}`
-                                }
-                                positions={[
-                                    targetPosition,
-                                    [
-                                        latitude,
-                                        longitude,
-                                    ],
-                                ]}
-                                pathOptions={{
-                                    dashArray: "6 8",
-                                }}
-                            />
-                        );
-                    })}
+                    )}
 
                 </MapContainer>
+
+
+                {/* ==================================================
+                    MAP LEGEND
+                ================================================== */}
+
+                <div className="pointer-events-none absolute bottom-4 left-4 z-[1000] rounded-xl border border-white/70 bg-white/95 px-4 py-3 shadow-lg backdrop-blur">
+
+                    <div className="flex items-center gap-4">
+
+                        {/* RED TARGET */}
+
+                        <div className="flex items-center gap-2">
+
+                            <span className="h-3 w-3 rounded-full border-2 border-white bg-red-600 shadow"></span>
+
+                            <span className="text-xs font-bold text-slate-700">
+
+                                Target Well
+
+                            </span>
+
+                        </div>
+
+
+                        {/* BLUE NEARBY */}
+
+                        <div className="flex items-center gap-2">
+
+                            <span className="h-3 w-3 rounded-full border-2 border-white bg-blue-600 shadow"></span>
+
+                            <span className="text-xs font-bold text-slate-700">
+
+                                Nearby Well
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
 
             </div>
 
 
-            {/* =================================================
-                MAP LEGEND
+            {/* ==================================================
+                COORDINATE INFORMATION
             ================================================== */}
 
-            <div className="mt-4 flex flex-wrap items-center gap-5">
+            <div className="grid border-t border-slate-100 bg-slate-50 sm:grid-cols-3">
 
-                {/* Target */}
+                {/* TARGET */}
 
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                <div className="border-b border-slate-100 p-4 sm:border-b-0 sm:border-r">
 
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-50">
-                        🎯
-                    </span>
+                    <p className="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">
 
-                    <span>
                         Target Well
-                    </span>
+
+                    </p>
+
+
+                    <p className="mt-1 text-sm font-extrabold text-red-600">
+
+                        {targetWell.well_id}
+
+                    </p>
 
                 </div>
 
 
-                {/* Nearby */}
+                {/* COORDINATES */}
 
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                <div className="border-b border-slate-100 p-4 sm:border-b-0 sm:border-r">
 
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100">
-                        🔵
-                    </span>
+                    <p className="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">
 
-                    <span>
-                        Nearby Well
-                    </span>
+                        Coordinates
+
+                    </p>
+
+
+                    <p className="mt-1 text-xs font-bold text-slate-700">
+
+                        {latitude.toFixed(5)},
+
+                        {" "}
+
+                        {longitude.toFixed(5)}
+
+                    </p>
 
                 </div>
 
 
-                {/* Relationship */}
+                {/* RADIUS */}
 
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                <div className="p-4">
 
-                    <span className="h-0.5 w-8 border-t-2 border-dashed border-blue-400"></span>
+                    <p className="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">
 
-                    <span>
-                        Distance Relationship
-                    </span>
+                        Search Radius
+
+                    </p>
+
+
+                    <p className="mt-1 text-sm font-extrabold text-blue-600">
+
+                        {radiusKm} km
+
+                    </p>
 
                 </div>
 
             </div>
 
         </section>
+
     );
 }
 

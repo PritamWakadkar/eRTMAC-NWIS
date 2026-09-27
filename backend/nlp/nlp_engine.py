@@ -66,16 +66,15 @@ class NLPEngine:
     # ==========================================================
     # GET ALL WELL IDS
     # ==========================================================
-
     def get_all_well_ids(self):
+        """Return unique well IDs from PostgreSQL and RAG metadata."""
 
+        db_well_ids = set()
         connection = None
         cursor = None
 
         try:
-
             connection = get_connection()
-
             cursor = connection.cursor()
 
             cursor.execute(
@@ -88,31 +87,42 @@ class NLPEngine:
 
             rows = cursor.fetchall()
 
-            return [
-                str(row[0]).upper()
+            db_well_ids = {
+                str(row[0]).upper().strip()
                 for row in rows
-            ]
+                if row and row[0]
+            }
 
         except Exception as e:
-
-            print(
-                "Error getting well IDs:",
-                e
-            )
-
-            return []
+            print("Error getting database well IDs:", e)
 
         finally:
-
             if cursor:
                 cursor.close()
 
             if connection:
                 connection.close()
 
-    # ==========================================================
-    # PROCESS USER QUESTION
-    # ==========================================================
+        rag_well_ids = set()
+
+        try:
+            metadata = getattr(self.rag, "metadata", []) or []
+
+            for item in metadata:
+                if not isinstance(item, dict):
+                    continue
+
+                rag_well_id = item.get("well_id")
+
+                if rag_well_id:
+                    rag_well_ids.add(
+                        str(rag_well_id).upper().strip()
+                    )
+
+        except Exception as e:
+            print("Error getting RAG well IDs:", e)
+
+        return sorted(db_well_ids | rag_well_ids)
 
     def process(
         self,
@@ -353,19 +363,14 @@ class NLPEngine:
         route
     ):
 
-        event_type = parsed_query.get(
-            "event_type"
-        )
+        event_type = parsed_query.get("event_type")
 
         if not event_type:
-
             return {
                 "success": False,
                 "route": route,
                 "query": parsed_query,
-                "error": (
-                    "No event type found in the question."
-                )
+                "error": "No event type found in the question."
             }
 
         # ------------------------------------------------------
@@ -375,127 +380,169 @@ class NLPEngine:
         well_ids = self.get_all_well_ids()
 
         matched_events = []
-
-        matched_well_ids = []
+        matched_well_ids = set()
+        seen_events = set()
 
         # ------------------------------------------------------
         # SEARCH EVERY WELL
         # ------------------------------------------------------
 
         for current_well_id in well_ids:
+            current_well_id = str(current_well_id).upper().strip()
 
             try:
-
-                events = (
-                    self.rag.get_well_events(
-                        current_well_id
-                    )
-                )
-
+                events = self.rag.get_well_events(current_well_id) or []
             except Exception as e:
-
                 print(
-                    f"Error reading events for "
-                    f"{current_well_id}: {e}"
+                    f"Error reading events for {current_well_id}: {e}"
                 )
-
                 continue
 
-            # --------------------------------------------------
-            # CHECK EVENTS
-            # --------------------------------------------------
-
             for event in events:
+                if not isinstance(event, dict):
+                    continue
 
                 actual_event_type = (
                     event.get("event_type")
                     or event.get("event")
                 )
 
-                if self.event_types_match(
+                if not self.event_types_match(
                     event_type,
                     actual_event_type
                 ):
+                    continue
 
-                    event_copy = dict(
-                        event
-                    )
+                event_copy = dict(event)
+                event_copy["well_id"] = str(
+                    event_copy.get("well_id")
+                    or current_well_id
+                ).upper().strip()
 
-                    event_copy["well_id"] = (
-                        event_copy.get(
-                            "well_id"
-                        )
-                        or current_well_id
-                    )
+                # --------------------------------------------------
+                # NORMALIZED DEDUPLICATION KEY
+                # --------------------------------------------------
+                # RAG can return the same event from multiple chunks.
+                # Deduplicate using the actual well, event, depth,
+                # measurement and evidence. Document/page are kept
+                # as fallback identity fields for genuinely different
+                # source records.
 
-                    matched_events.append(
-                        event_copy
-                    )
+                normalized_event = str(
+                    event_copy.get("event_type")
+                    or event_copy.get("event")
+                    or ""
+                ).strip().lower()
 
-                    if (
-                        current_well_id
-                        not in matched_well_ids
-                    ):
+                normalized_depth = str(
+                    event_copy.get("depth")
+                    or event_copy.get("event_depth")
+                    or ""
+                ).strip().lower()
 
-                        matched_well_ids.append(
-                            current_well_id
-                        )
+                normalized_measurement = str(
+                    event_copy.get("measurement")
+                    or ""
+                ).strip().lower()
+
+                normalized_evidence = " ".join(
+                    str(
+                        event_copy.get("evidence")
+                        or event_copy.get("description")
+                        or event_copy.get("text")
+                        or ""
+                    ).strip().lower().split()
+                )
+
+                normalized_document = str(
+                    event_copy.get("document")
+                    or ""
+                ).strip().lower()
+
+                normalized_page = str(
+                    event_copy.get("page")
+                    or ""
+                ).strip()
+
+                event_key = (
+                    event_copy["well_id"],
+                    normalized_event,
+                    normalized_depth,
+                    normalized_measurement,
+                    normalized_evidence,
+                    normalized_document,
+                    normalized_page
+                )
+
+                if event_key in seen_events:
+                    continue
+
+                seen_events.add(event_key)
+                matched_events.append(event_copy)
+                matched_well_ids.add(event_copy["well_id"])
 
         # ------------------------------------------------------
-        # BUILD SUMMARY
+        # SORT RESULTS
         # ------------------------------------------------------
+
+        matched_well_ids = sorted(matched_well_ids)
+
+        matched_events.sort(
+            key=lambda event: (
+                str(event.get("well_id", "")),
+                str(event.get("depth", "")),
+                str(
+                    event.get("event_type")
+                    or event.get("event")
+                    or ""
+                )
+            )
+        )
+
+        # ------------------------------------------------------
+        # BUILD CLEAN SUMMARY
+        # ------------------------------------------------------
+
+        formatted_event_type = self.format_event_type(event_type)
 
         if matched_events:
-
             summary_lines = []
 
             for event in matched_events:
-
-                current_well = (
-                    event.get(
-                        "well_id",
-                        "Unknown"
-                    )
-                )
+                current_well = event.get("well_id", "Unknown")
 
                 evidence = (
-                    event.get(
-                        "evidence"
-                    )
-                    or event.get(
-                        "description"
-                    )
-                    or event.get(
-                        "text"
-                    )
-                    or "Event detected."
+                    event.get("evidence")
+                    or event.get("description")
+                    or event.get("text")
                 )
+
+                if not evidence:
+                    depth = event.get("depth", "Unknown depth")
+                    measurement = event.get(
+                        "measurement",
+                        "Not specified"
+                    )
+                    evidence = (
+                        f"{formatted_event_type} event at "
+                        f"{depth}; measurement: {measurement}."
+                    )
 
                 summary_lines.append(
                     f"{current_well} — {evidence}"
                 )
 
             summary = (
-                f"{len(matched_well_ids)} "
-                f"well(s) had "
-                f"{self.format_event_type(event_type)} "
-                f"events:\n"
-                + "\n".join(
-                    summary_lines
-                )
+                f"{len(matched_well_ids)} well(s) had "
+                f"{formatted_event_type} events:\n"
+                + "\n".join(summary_lines)
             )
 
         else:
-
             summary = (
                 f"No wells were found with "
-                f"{self.format_event_type(event_type)} "
-                f"events."
+                f"{formatted_event_type} events."
             )
-
-        # ------------------------------------------------------
-        # RETURN RESULT
-        # ------------------------------------------------------
 
         return {
             "success": True,
@@ -505,9 +552,8 @@ class NLPEngine:
                 "scope": "all_wells",
                 "event_type": event_type,
                 "matched_wells": matched_well_ids,
-                "well_count": len(
-                    matched_well_ids
-                ),
+                "well_count": len(matched_well_ids),
+                "event_count": len(matched_events),
                 "matched_events": matched_events,
                 "structured_summary": summary,
                 "ai_summary": summary

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-
+import WellMap from "../components/wells/WellMap";
 import {
     Activity,
     ArrowRight,
@@ -804,6 +804,40 @@ function Analysis() {
                                         handleSelectWell
                                     }
                                 />
+                                {/* ============================================================
+    NEARBY WELL MAP
+============================================================ */}
+
+                                {analysis?.result?.target_well && (
+
+                                    <WellMap
+                                        targetWell={{
+                                            well_id:
+                                                analysis.result.target_well,
+
+                                            latitude:
+                                                analysis.result.target_latitude,
+
+                                            longitude:
+                                                analysis.result.target_longitude,
+
+                                            formation:
+                                                analysis.result.target_formation,
+
+                                            total_depth:
+                                                analysis.result.target_total_depth,
+                                        }}
+
+                                        nearbyWells={
+                                            analysis.result.nearby_wells || []
+                                        }
+
+                                        radiusKm={
+                                            analysis.result.radius_km || 10
+                                        }
+                                    />
+
+                                )}
 
                             </section>
 
