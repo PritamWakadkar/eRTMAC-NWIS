@@ -8,9 +8,9 @@ const API = axios.create({
 });
 
 
-// ================================================================
-// NATURAL LANGUAGE ANALYSIS
-// ================================================================
+// ============================================================
+// ANALYSIS API
+// ============================================================
 
 export const analyzeWell = async (
     question,
@@ -38,9 +38,9 @@ export const analyzeWell = async (
 };
 
 
-// ================================================================
-// DRILLING EVENT PREDICTION
-// ================================================================
+// ============================================================
+// PREDICTION API
+// ============================================================
 
 export const predictWell = async (
     wellId,
@@ -48,10 +48,13 @@ export const predictWell = async (
 ) => {
     try {
 
-        const response = await API.post("/predict", {
-            well_id: wellId,
-            depth: Number(depth),
-        });
+        const response = await API.post(
+            "/predict",
+            {
+                well_id: wellId,
+                depth: Number(depth),
+            }
+        );
 
         return response.data;
 
@@ -67,9 +70,9 @@ export const predictWell = async (
 };
 
 
-// ================================================================
-// NEARBY WELLS
-// ================================================================
+// ============================================================
+// NEARBY WELLS API
+// ============================================================
 
 export const getNearbyWells = async (
     wellId,
@@ -99,5 +102,159 @@ export const getNearbyWells = async (
     }
 };
 
+
+// ============================================================
+// DOCUMENT — UPLOAD
+// ============================================================
+
+export const uploadDocument = async (
+    file
+) => {
+
+    try {
+
+        const formData = new FormData();
+
+        formData.append(
+            "file",
+            file
+        );
+
+        const response = await API.post(
+            "/documents/upload",
+            formData,
+            {
+                headers: {
+                    "Content-Type":
+                        "multipart/form-data",
+                },
+            }
+        );
+
+        return response.data;
+
+    } catch (error) {
+
+        console.error(
+            "Document Upload API Error:",
+            error.response?.data || error.message
+        );
+
+        throw error;
+    }
+};
+
+
+// ============================================================
+// DOCUMENT — GET ALL
+// ============================================================
+
+export const getDocuments = async () => {
+
+    try {
+
+        const response = await API.get(
+            "/documents"
+        );
+
+        return response.data;
+
+    } catch (error) {
+
+        console.error(
+            "Get Documents API Error:",
+            error.response?.data || error.message
+        );
+
+        throw error;
+    }
+};
+
+
+// ============================================================
+// DOCUMENT — GET ONE
+// ============================================================
+
+export const getDocument = async (
+    documentId
+) => {
+
+    try {
+
+        const response = await API.get(
+            `/documents/${documentId}`
+        );
+
+        return response.data;
+
+    } catch (error) {
+
+        console.error(
+            "Get Document API Error:",
+            error.response?.data || error.message
+        );
+
+        throw error;
+    }
+};
+
+
+// ============================================================
+// DOCUMENT — PROCESS
+// ============================================================
+
+export const processDocument = async (
+    documentId
+) => {
+
+    try {
+
+        const response = await API.post(
+            `/documents/${documentId}/process`
+        );
+
+        return response.data;
+
+    } catch (error) {
+
+        console.error(
+            "Process Document API Error:",
+            error.response?.data || error.message
+        );
+
+        throw error;
+    }
+};
+
+
+// ============================================================
+// DOCUMENT — DELETE
+// ============================================================
+
+export const deleteDocument = async (
+    documentId
+) => {
+
+    try {
+
+        const response = await API.delete(
+            `/documents/${documentId}`
+        );
+
+        return response.data;
+
+    } catch (error) {
+
+        console.error(
+            "Delete Document API Error:",
+            error.response?.data || error.message
+        );
+
+        throw error;
+    }
+};
+// ============================================================
+// DEFAULT API INSTANCE
+// ============================================================
 
 export default API;

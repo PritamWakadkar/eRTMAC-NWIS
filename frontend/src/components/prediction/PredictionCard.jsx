@@ -1,6 +1,5 @@
 import {
     Activity,
-    AlertTriangle,
     CheckCircle2,
     CircleAlert,
     Gauge,
@@ -8,22 +7,37 @@ import {
     Zap,
 } from "lucide-react";
 
-function formatEventName(event) {
-    if (!event) return "Unknown Event";
 
-    return event
+// ============================================================
+// FORMAT EVENT NAME
+// ============================================================
+
+function formatEventName(event) {
+    if (!event) {
+        return "Unknown Event";
+    }
+
+    return String(event)
         .replaceAll("_", " ")
         .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function getEventConfig(event, probability) {
-    const normalized = event?.toLowerCase();
+
+// ============================================================
+// EVENT CONFIGURATION
+// ============================================================
+
+function getEventConfig(event) {
+    const normalized = String(event || "")
+        .trim()
+        .toLowerCase()
+        .replaceAll(" ", "_");
+
 
     if (normalized === "normal") {
         return {
             icon: CheckCircle2,
             label: "Normal",
-            accent: "emerald",
             bg: "bg-emerald-50",
             border: "border-emerald-200",
             text: "text-emerald-700",
@@ -32,14 +46,14 @@ function getEventConfig(event, probability) {
         };
     }
 
+
     if (
         normalized === "mud_loss" ||
-        normalized === "mud loss"
+        normalized === "lost_circulation"
     ) {
         return {
             icon: Activity,
             label: "Mud Loss",
-            accent: "blue",
             bg: "bg-blue-50",
             border: "border-blue-200",
             text: "text-blue-700",
@@ -48,14 +62,14 @@ function getEventConfig(event, probability) {
         };
     }
 
+
     if (
         normalized === "torque_spike" ||
-        normalized === "torque increase"
+        normalized === "torque_increase"
     ) {
         return {
             icon: Zap,
             label: "Torque Spike",
-            accent: "orange",
             bg: "bg-orange-50",
             border: "border-orange-200",
             text: "text-orange-700",
@@ -64,6 +78,7 @@ function getEventConfig(event, probability) {
         };
     }
 
+
     if (
         normalized === "drag" ||
         normalized === "drag_increase"
@@ -71,7 +86,6 @@ function getEventConfig(event, probability) {
         return {
             icon: TrendingUp,
             label: "Drag Increase",
-            accent: "rose",
             bg: "bg-rose-50",
             border: "border-rose-200",
             text: "text-rose-700",
@@ -80,11 +94,11 @@ function getEventConfig(event, probability) {
         };
     }
 
+
     if (normalized === "wiper_trip") {
         return {
             icon: Gauge,
             label: "Wiper Trip",
-            accent: "violet",
             bg: "bg-violet-50",
             border: "border-violet-200",
             text: "text-violet-700",
@@ -93,10 +107,10 @@ function getEventConfig(event, probability) {
         };
     }
 
+
     return {
         icon: CircleAlert,
         label: formatEventName(event),
-        accent: "indigo",
         bg: "bg-indigo-50",
         border: "border-indigo-200",
         text: "text-indigo-700",
@@ -105,62 +119,127 @@ function getEventConfig(event, probability) {
     };
 }
 
-function getRiskLevel(event, probability) {
-    const normalized = event?.toLowerCase();
+
+// ============================================================
+// MODEL OUTPUT CATEGORY
+//
+// IMPORTANT:
+// These are presentation categories for the prototype output.
+// They are NOT validated field-risk classifications.
+// ============================================================
+
+function getOutputCategory(event, probability) {
+    const normalized = String(event || "")
+        .trim()
+        .toLowerCase()
+        .replaceAll(" ", "_");
+
 
     if (normalized === "normal") {
         return {
-            label: "Normal",
+            label: "Normal output",
             text: "text-emerald-600",
             bg: "bg-emerald-50",
         };
     }
 
+
     if (probability >= 0.7) {
         return {
-            label: "High",
+            label: "High model output",
             text: "text-red-600",
             bg: "bg-red-50",
         };
     }
 
+
     if (probability >= 0.4) {
         return {
-            label: "Moderate",
+            label: "Moderate model output",
             text: "text-amber-600",
             bg: "bg-amber-50",
         };
     }
 
+
     return {
-        label: "Low",
+        label: "Low model output",
         text: "text-slate-500",
         bg: "bg-slate-100",
     };
 }
 
-function PredictionCard({ event, probability }) {
+
+// ============================================================
+// NORMALIZE PROBABILITY
+//
+// Expected backend format:
+//
+// 0.81
+// 0.43
+// 0.12
+//
+// But this also safely handles:
+//
+// 81
+// 43
+// 12
+//
+// ============================================================
+
+function normalizeProbability(probability) {
+    const numericValue = Number(probability);
+
+    if (!Number.isFinite(numericValue)) {
+        return 0;
+    }
+
+
+    if (numericValue > 1) {
+        return Math.min(
+            1,
+            Math.max(0, numericValue / 100)
+        );
+    }
+
+
+    return Math.min(
+        1,
+        Math.max(0, numericValue)
+    );
+}
+
+
+// ============================================================
+// PREDICTION CARD
+// ============================================================
+
+function PredictionCard({
+    event,
+    probability,
+}) {
     const probabilityValue =
-        typeof probability === "number"
-            ? probability
-            : Number(probability) || 0;
+        normalizeProbability(probability);
 
-    const percentage = Math.min(
-        100,
-        Math.max(0, probabilityValue * 100)
-    );
 
-    const config = getEventConfig(
-        event,
-        probabilityValue
-    );
+    const percentage =
+        probabilityValue * 100;
 
-    const risk = getRiskLevel(
-        event,
-        probabilityValue
-    );
 
-    const Icon = config.icon;
+    const config =
+        getEventConfig(event);
+
+
+    const outputCategory =
+        getOutputCategory(
+            event,
+            probabilityValue
+        );
+
+
+    const Icon =
+        config.icon;
+
 
     return (
         <div
@@ -178,7 +257,11 @@ function PredictionCard({ event, probability }) {
                 ${config.glow}
             `}
         >
-            {/* Decorative glow */}
+
+            {/* =====================================================
+                DECORATIVE GLOW
+            ====================================================== */}
+
             <div
                 className={`
                     pointer-events-none
@@ -194,9 +277,15 @@ function PredictionCard({ event, probability }) {
                 `}
             />
 
-            {/* Header */}
+
+            {/* =====================================================
+                HEADER
+            ====================================================== */}
+
             <div className="relative flex items-start justify-between gap-4">
+
                 <div className="flex items-center gap-3">
+
                     <div
                         className={`
                             flex
@@ -213,18 +302,27 @@ function PredictionCard({ event, probability }) {
                         <Icon className="h-5 w-5" />
                     </div>
 
+
                     <div>
+
                         <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
                             Event Type
                         </p>
 
+
                         <h3 className="mt-1 text-sm font-extrabold text-slate-900">
                             {config.label}
                         </h3>
+
                     </div>
+
                 </div>
 
-                {/* Risk badge */}
+
+                {/* =================================================
+                    OUTPUT CATEGORY
+                ================================================== */}
+
                 <span
                     className={`
                         rounded-full
@@ -234,22 +332,31 @@ function PredictionCard({ event, probability }) {
                         font-black
                         uppercase
                         tracking-wider
-                        ${risk.bg}
-                        ${risk.text}
+                        ${outputCategory.bg}
+                        ${outputCategory.text}
                     `}
                 >
-                    {risk.label}
+                    {outputCategory.label}
                 </span>
+
             </div>
 
-            {/* Probability */}
+
+            {/* =====================================================
+                PROBABILITY
+            ====================================================== */}
+
             <div className="relative mt-6 flex items-end justify-between">
+
                 <div>
+
                     <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">
-                        Probability
+                        Model Probability
                     </p>
 
+
                     <div className="mt-1 flex items-baseline gap-1">
+
                         <span
                             className={`
                                 text-3xl
@@ -261,18 +368,29 @@ function PredictionCard({ event, probability }) {
                             {percentage.toFixed(0)}
                         </span>
 
+
                         <span className="text-lg font-bold text-slate-400">
                             %
                         </span>
+
                     </div>
+
                 </div>
 
-                {/* Mini percentage circle */}
+
+                {/* =================================================
+                    CIRCULAR INDICATOR
+                ================================================== */}
+
                 <div className="relative flex h-14 w-14 items-center justify-center">
+
                     <svg
                         className="h-14 w-14 -rotate-90"
                         viewBox="0 0 36 36"
                     >
+
+                        {/* Background */}
+
                         <circle
                             cx="18"
                             cy="18"
@@ -282,6 +400,9 @@ function PredictionCard({ event, probability }) {
                             strokeWidth="3"
                             className="text-slate-100"
                         />
+
+
+                        {/* Progress */}
 
                         <circle
                             cx="18"
@@ -294,29 +415,47 @@ function PredictionCard({ event, probability }) {
                             strokeDasharray={`${percentage * 0.942} 100`}
                             className={config.text}
                         />
+
                     </svg>
+
 
                     <span className="absolute text-[9px] font-black text-slate-500">
                         AI
                     </span>
+
                 </div>
+
             </div>
 
-            {/* Progress bar */}
+
+            {/* =====================================================
+                PROGRESS BAR
+            ====================================================== */}
+
             <div className="relative mt-5">
+
                 <div className="mb-2 flex items-center justify-between">
+
                     <span className="text-[10px] font-semibold text-slate-400">
-                        Confidence level
+                        Model output
                     </span>
 
+
                     <span
-                        className={`text-[10px] font-black ${config.text}`}
+                        className={`
+                            text-[10px]
+                            font-black
+                            ${config.text}
+                        `}
                     >
                         {percentage.toFixed(1)}%
                     </span>
+
                 </div>
 
+
                 <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+
                     <div
                         className={`
                             h-full
@@ -330,11 +469,18 @@ function PredictionCard({ event, probability }) {
                             width: `${percentage}%`,
                         }}
                     />
+
                 </div>
+
             </div>
 
-            {/* Bottom indicator */}
+
+            {/* =====================================================
+                FOOTER
+            ====================================================== */}
+
             <div className="relative mt-5 flex items-center gap-2 border-t border-slate-100 pt-4">
+
                 <div
                     className={`
                         h-2
@@ -345,20 +491,40 @@ function PredictionCard({ event, probability }) {
                     `}
                 />
 
+
                 <span className="text-[10px] font-semibold text-slate-400">
-                    Model prediction
+                    Prototype model output
                 </span>
 
+
                 <span className="ml-auto text-[10px] font-bold text-slate-500">
-                    {probabilityValue >= 0.7
-                        ? "Strong signal"
-                        : probabilityValue >= 0.4
-                        ? "Possible signal"
-                        : "Weak signal"}
+                    {percentage >= 70
+                        ? "Higher output"
+                        : percentage >= 40
+                        ? "Intermediate output"
+                        : "Lower output"}
                 </span>
+
             </div>
+
+
+            {/* =====================================================
+                PROTOTYPE DISCLAIMER
+            ====================================================== */}
+
+            <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2">
+
+                <p className="text-[9px] leading-4 text-amber-700">
+                    Prototype probability from the current
+                    training dataset. It is not a calibrated
+                    field-risk probability.
+                </p>
+
+            </div>
+
         </div>
     );
 }
+
 
 export default PredictionCard;

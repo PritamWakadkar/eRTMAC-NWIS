@@ -4,10 +4,18 @@ import numpy as np
 from ..config import INDEX_DIR
 
 
+# =========================================================
+# FAISS Index File
+# =========================================================
+
 INDEX_FILE = INDEX_DIR / "faiss.index"
 
 
 class FAISSStore:
+
+    # =====================================================
+    # Initialize
+    # =====================================================
 
     def __init__(self, dimension):
         """
@@ -40,6 +48,7 @@ class FAISSStore:
             dtype="float32"
         )
 
+        # Validate dimensions
         if embeddings.ndim != 2:
             raise ValueError(
                 "Embeddings must be a 2D array."
@@ -51,6 +60,10 @@ class FAISSStore:
                 f"Expected {self.dimension}, "
                 f"got {embeddings.shape[1]}."
             )
+
+        # Do nothing for empty input
+        if embeddings.shape[0] == 0:
+            return
 
         self.index.add(
             embeddings
@@ -72,6 +85,7 @@ class FAISSStore:
             scores, indexes
         """
 
+        # No vectors available
         if self.index.ntotal == 0:
             return (
                 np.array([], dtype="float32"),
@@ -84,9 +98,11 @@ class FAISSStore:
         )
 
         # Convert:
+        #
         # [dimension]
         #
         # into:
+        #
         # [1, dimension]
 
         if query_embedding.ndim == 1:
@@ -107,7 +123,7 @@ class FAISSStore:
                 f"got {query_embedding.shape[1]}."
             )
 
-        # Never request more vectors than actually exist.
+        # Never request more vectors than actually exist
         top_k = min(
             int(top_k),
             self.index.ntotal
@@ -138,6 +154,7 @@ class FAISSStore:
         Save the FAISS index to disk.
         """
 
+        # Make sure the directory exists
         INDEX_DIR.mkdir(
             parents=True,
             exist_ok=True
@@ -167,9 +184,7 @@ class FAISSStore:
             str(INDEX_FILE)
         )
 
-        # Make sure the loaded index has the
-        # expected embedding dimension.
-
+        # Validate embedding dimension
         if self.index.d != self.dimension:
             raise ValueError(
                 f"FAISS index dimension mismatch. "
@@ -188,3 +203,22 @@ class FAISSStore:
         """
 
         return self.index.ntotal
+
+    # =====================================================
+    # Clear Index
+    # =====================================================
+
+    def clear(self):
+        """
+        Clear the current FAISS index and remove
+        the saved index from disk.
+        """
+
+        # Create a fresh empty index
+        self.index = faiss.IndexFlatIP(
+            self.dimension
+        )
+
+        # Delete saved FAISS index if it exists
+        if INDEX_FILE.exists():
+            INDEX_FILE.unlink()

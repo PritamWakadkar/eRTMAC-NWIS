@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from backend.db import get_connection
 from backend.nlp.nlp_engine import NLPEngine
 from backend.prediction.predictor import DrillingEventPredictor
+from backend.api.document_routes import router as document_router
 
 
 # ================================================================
@@ -32,6 +33,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ================================================================
+# DOCUMENT PROCESSING ROUTES
+# ================================================================
+
+app.include_router(document_router)
 
 
 # ================================================================
@@ -63,7 +71,6 @@ class PredictionRequest(BaseModel):
 
 @app.get("/")
 def home():
-
     return {
         "message": "eRTMAC-NWIS API is running"
     }
@@ -103,7 +110,6 @@ def get_nearby_wells(
         target = cursor.fetchone()
 
         if target is None:
-
             raise HTTPException(
                 status_code=404,
                 detail=f"Well {well_id.upper()} not found"
@@ -121,7 +127,6 @@ def get_nearby_wells(
                 w.longitude,
                 w.total_depth,
                 w.formation,
-
                 ROUND(
                     (
                         ST_Distance(
@@ -131,23 +136,18 @@ def get_nearby_wells(
                     )::numeric,
                     2
                 ) AS distance_km
-
             FROM wells w
-
             CROSS JOIN (
                 SELECT location
                 FROM wells
                 WHERE well_id = %s
             ) AS target
-
             WHERE w.well_id != %s
-
             AND ST_DWithin(
                 w.location::geography,
                 target.location::geography,
                 %s
             )
-
             ORDER BY distance_km;
             """,
             (
@@ -182,7 +182,6 @@ def get_nearby_wells(
         }
 
     except HTTPException:
-
         raise
 
     except Exception as e:

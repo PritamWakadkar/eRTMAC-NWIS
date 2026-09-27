@@ -8,133 +8,339 @@ import {
     CheckCircle2,
     Database,
     Gauge,
-    Layers3,
     MapPin,
     Radar,
     Search,
     Sparkles,
-    Target,
     Zap,
 } from "lucide-react";
 
 import SearchPanel from "../components/analysis/SearchPanel";
 import AnalysisResults from "../components/analysis/AnalysisResults";
-import Loading from "../components/common/Loading";
 import ErrorState from "../components/common/ErrorState";
 
 import { analyzeWell } from "../services/api";
 
+
+// ============================================================
+// EXTRACT API ERROR
+// ============================================================
+
+const getApiError = (
+    error,
+    fallbackMessage
+) => {
+    return (
+        error?.response?.data?.detail ||
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        error?.message ||
+        fallbackMessage
+    );
+};
+
+
+// ============================================================
+// MAIN COMPONENT
+// ============================================================
+
 function Analysis() {
-    const [question, setQuestion] = useState("");
-    const [radiusKm, setRadiusKm] = useState(10);
-    const [depthTolerance, setDepthTolerance] = useState(200);
 
-    const [analysis, setAnalysis] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    // ========================================================
+    // QUERY STATE
+    // ========================================================
 
-    // ============================================================
+    const [question, setQuestion] =
+        useState("");
+
+    const [radiusKm, setRadiusKm] =
+        useState(10);
+
+    const [depthTolerance, setDepthTolerance] =
+        useState(200);
+
+
+    // ========================================================
+    // RESULT STATE
+    // ========================================================
+
+    const [analysis, setAnalysis] =
+        useState(null);
+
+    const [loading, setLoading] =
+        useState(false);
+
+    const [error, setError] =
+        useState("");
+
+
+    // ========================================================
     // ANALYZE QUESTION
-    // ============================================================
+    // ========================================================
 
     const handleAnalyze = async () => {
-        if (!question.trim()) {
-            toast.error("Please enter a question.");
+
+        const trimmedQuestion =
+            question.trim();
+
+
+        // ----------------------------------------------------
+        // EMPTY QUESTION
+        // ----------------------------------------------------
+
+        if (!trimmedQuestion) {
+
+            toast.error(
+                "Please enter a question."
+            );
+
             return;
         }
 
+
+        // ----------------------------------------------------
+        // PREVENT DUPLICATE REQUEST
+        // ----------------------------------------------------
+
+        if (loading) {
+            return;
+        }
+
+
+        // ----------------------------------------------------
+        // VALIDATE PARAMETERS
+        // ----------------------------------------------------
+
+        const numericRadius =
+            Number(radiusKm);
+
+        const numericDepthTolerance =
+            Number(depthTolerance);
+
+
+        if (
+            !Number.isFinite(
+                numericRadius
+            ) ||
+            numericRadius <= 0
+        ) {
+
+            const message =
+                "Radius must be greater than 0 km.";
+
+            setError(message);
+
+            toast.error(message);
+
+            return;
+        }
+
+
+        if (
+            !Number.isFinite(
+                numericDepthTolerance
+            ) ||
+            numericDepthTolerance < 0
+        ) {
+
+            const message =
+                "Depth tolerance cannot be negative.";
+
+            setError(message);
+
+            toast.error(message);
+
+            return;
+        }
+
+
         try {
+
+            // ------------------------------------------------
+            // START
+            // ------------------------------------------------
+
             setLoading(true);
+
             setError("");
+
             setAnalysis(null);
 
-            const response = await analyzeWell(
-                question.trim(),
-                radiusKm,
-                depthTolerance
+
+            // ------------------------------------------------
+            // BACKEND REQUEST
+            // ------------------------------------------------
+
+            const response =
+                await analyzeWell(
+                    trimmedQuestion,
+                    numericRadius,
+                    numericDepthTolerance
+                );
+
+
+            console.log(
+                "Analyze API Response:",
+                response
             );
 
-            console.log("Analyze API Response:", response);
 
-            if (!response?.success) {
+            // ------------------------------------------------
+            // CHECK BACKEND SUCCESS
+            // ------------------------------------------------
+
+            if (
+                !response ||
+                response.success !== true
+            ) {
+
                 throw new Error(
                     response?.error ||
-                        "Unable to analyze the well data."
+                    response?.message ||
+                    response?.detail ||
+                    "Unable to analyze the well data."
                 );
             }
 
+
+            // ------------------------------------------------
+            // IMPORTANT
+            //
+            // Keep COMPLETE backend response.
+            //
+            // Expected:
+            //
+            // {
+            //     success: true,
+            //     route: "...",
+            //     query: {...},
+            //     result: {...}
+            // }
+            // ------------------------------------------------
+
             setAnalysis(response);
+
 
             toast.success(
                 "Well analysis completed successfully."
             );
+
         } catch (err) {
+
             console.error(
                 "Well analysis error:",
                 err
             );
 
+
             const message =
-                err?.response?.data?.error ||
-                err?.message ||
-                "Unable to connect to the analysis service.";
+                getApiError(
+                    err,
+                    "Unable to connect to the analysis service."
+                );
+
 
             setError(message);
 
+            setAnalysis(null);
+
             toast.error(message);
+
         } finally {
+
             setLoading(false);
         }
     };
 
-    // ============================================================
-    // SELECT WELL
-    // ============================================================
 
-    const handleSelectWell = (well) => {
-        if (!well) return;
+    // ========================================================
+    // SELECT NEARBY WELL
+    // ========================================================
+
+    const handleSelectWell = (
+        well
+    ) => {
+
+        if (!well) {
+            return;
+        }
+
 
         const wellId =
             well.well_id ||
             well.id ||
-            well.name;
+            well.name ||
+            null;
 
-        if (wellId) {
-            toast.info(`Selected well: ${wellId}`);
-        }
 
         console.log(
             "Selected nearby well:",
             well
         );
-    };
 
-    // ============================================================
-    // RETRY
-    // ============================================================
 
-    const handleRetry = () => {
-        if (question.trim()) {
-            handleAnalyze();
+        if (wellId) {
+
+            toast.info(
+                `Selected well: ${wellId}`
+            );
+
         }
     };
 
-    // ============================================================
-    // EXAMPLE QUESTION
-    // ============================================================
 
-    const useExample = (value) => {
-        setQuestion(value);
+    // ========================================================
+    // RETRY
+    // ========================================================
 
-        toast.info("Example question loaded.");
+    const handleRetry = () => {
+
+        if (!question.trim()) {
+
+            toast.error(
+                "Please enter a question first."
+            );
+
+            return;
+        }
+
+
+        handleAnalyze();
     };
 
+
+    // ========================================================
+    // LOAD EXAMPLE
+    // ========================================================
+
+    const useExample = (
+        value
+    ) => {
+
+        setQuestion(value);
+
+        setError("");
+
+        setAnalysis(null);
+
+        toast.info(
+            "Example question loaded."
+        );
+    };
+
+
+    // ========================================================
+    // RENDER
+    // ========================================================
+
     return (
+
         <div className="min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-violet-50/30">
 
-            {/* =====================================================
+
+            {/* ==================================================
                 BACKGROUND EFFECTS
-            ====================================================== */}
+            ================================================== */}
 
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
 
@@ -146,36 +352,49 @@ function Analysis() {
 
             </div>
 
+
+            {/* ==================================================
+                MAIN
+            ================================================== */}
+
             <main className="relative">
 
                 <div className="mx-auto max-w-[1450px] px-6 py-8 max-sm:px-4">
 
-                    {/* =================================================
+
+                    {/* ==================================================
                         HERO
-                    ================================================= */}
+                    ================================================== */}
 
                     <section className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#071426] via-[#102b59] to-[#312e81] p-7 shadow-[0_25px_70px_rgba(30,64,175,0.20)] sm:p-10">
 
-                        {/* Grid */}
+
+                        {/* GRID BACKGROUND */}
 
                         <div
                             className="pointer-events-none absolute inset-0 opacity-[0.04]"
                             style={{
                                 backgroundImage:
                                     "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
-                                backgroundSize: "40px 40px",
+                                backgroundSize:
+                                    "40px 40px",
                             }}
                         />
 
-                        {/* Glows */}
+
+                        {/* GLOWS */}
 
                         <div className="pointer-events-none absolute -right-32 -top-32 h-[420px] w-[420px] rounded-full bg-blue-400/20 blur-3xl" />
 
                         <div className="pointer-events-none absolute bottom-[-180px] left-1/3 h-[400px] w-[400px] rounded-full bg-violet-400/10 blur-3xl" />
 
+
                         <div className="relative grid gap-10 lg:grid-cols-[1fr_320px] lg:items-center">
 
-                            {/* LEFT */}
+
+                            {/* ==================================================
+                                HERO LEFT
+                            ================================================== */}
 
                             <div>
 
@@ -191,6 +410,7 @@ function Analysis() {
 
                                     </span>
 
+
                                     <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-1.5">
 
                                         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
@@ -203,6 +423,7 @@ function Analysis() {
 
                                 </div>
 
+
                                 <h1 className="mt-5 text-4xl font-black tracking-tight text-white sm:text-5xl">
 
                                     Well{" "}
@@ -213,16 +434,17 @@ function Analysis() {
 
                                 </h1>
 
+
                                 <p className="mt-4 max-w-2xl text-sm leading-7 text-blue-100/70 sm:text-base">
-
-                                    Ask natural-language questions about
-                                    drilling events, nearby wells,
-                                    formations, historical observations
-                                    and depth-specific intelligence.
-
+                                    Ask natural-language questions
+                                    about drilling events, nearby
+                                    wells, formations, historical
+                                    observations and depth-specific
+                                    intelligence.
                                 </p>
 
-                                {/* TECHNOLOGY */}
+
+                                {/* TECHNOLOGIES */}
 
                                 <div className="mt-6 flex flex-wrap gap-2">
 
@@ -250,7 +472,10 @@ function Analysis() {
 
                             </div>
 
-                            {/* RIGHT VISUAL */}
+
+                            {/* ==================================================
+                                HERO RIGHT
+                            ================================================== */}
 
                             <div className="relative hidden lg:block">
 
@@ -264,6 +489,9 @@ function Analysis() {
 
                                     <div className="absolute inset-16 rounded-full bg-blue-500/20 blur-2xl" />
 
+
+                                    {/* CENTER */}
+
                                     <div className="absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[28px] border border-white/10 bg-white/10 shadow-2xl backdrop-blur-xl">
 
                                         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 shadow-lg shadow-blue-500/40">
@@ -273,6 +501,7 @@ function Analysis() {
                                         </div>
 
                                     </div>
+
 
                                     <HeroNode
                                         className="left-1/2 top-0 -translate-x-1/2"
@@ -302,9 +531,10 @@ function Analysis() {
 
                     </section>
 
-                    {/* =================================================
-                        SEARCH / QUERY SECTION
-                    ================================================= */}
+
+                    {/* ==================================================
+                        SEARCH SECTION
+                    ================================================== */}
 
                     <section className="mt-8">
 
@@ -326,6 +556,7 @@ function Analysis() {
 
                             </div>
 
+
                             <div className="hidden items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 sm:flex">
 
                                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
@@ -338,30 +569,50 @@ function Analysis() {
 
                         </div>
 
+
                         <div className="relative">
 
                             <div className="absolute -inset-1 rounded-[30px] bg-gradient-to-r from-blue-300/20 via-indigo-300/20 to-violet-300/20 blur-xl" />
 
                             <div className="relative">
+
                                 <SearchPanel
-                                    question={question}
-                                    setQuestion={setQuestion}
-                                    radiusKm={radiusKm}
-                                    setRadiusKm={setRadiusKm}
-                                    depthTolerance={depthTolerance}
-                                    setDepthTolerance={setDepthTolerance}
-                                    onAnalyze={handleAnalyze}
-                                    loading={loading}
+                                    question={
+                                        question
+                                    }
+                                    setQuestion={
+                                        setQuestion
+                                    }
+                                    radiusKm={
+                                        radiusKm
+                                    }
+                                    setRadiusKm={
+                                        setRadiusKm
+                                    }
+                                    depthTolerance={
+                                        depthTolerance
+                                    }
+                                    setDepthTolerance={
+                                        setDepthTolerance
+                                    }
+                                    onAnalyze={
+                                        handleAnalyze
+                                    }
+                                    loading={
+                                        loading
+                                    }
                                 />
+
                             </div>
 
                         </div>
 
                     </section>
 
-                    {/* =================================================
-                        PROCESSING PARAMETERS
-                    ================================================= */}
+
+                    {/* ==================================================
+                        PARAMETERS
+                    ================================================== */}
 
                     {!loading &&
                         !error &&
@@ -404,9 +655,10 @@ function Analysis() {
 
                         )}
 
-                    {/* =================================================
+
+                    {/* ==================================================
                         LOADING
-                    ================================================= */}
+                    ================================================== */}
 
                     {loading && (
 
@@ -424,9 +676,11 @@ function Analysis() {
 
                                     </div>
 
+
                                     <h3 className="mt-5 text-xl font-black text-slate-900">
                                         Analyzing Well Intelligence
                                     </h3>
+
 
                                     <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
                                         The intelligence pipeline is processing
@@ -435,6 +689,7 @@ function Analysis() {
                                     </p>
 
                                 </div>
+
 
                                 <div className="mx-auto mt-8 grid max-w-3xl gap-3 sm:grid-cols-3">
 
@@ -458,6 +713,7 @@ function Analysis() {
 
                                 </div>
 
+
                                 <div className="mx-auto mt-6 h-1.5 max-w-2xl overflow-hidden rounded-full bg-slate-100">
 
                                     <div className="h-full w-1/2 animate-[loading_1.8s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-blue-500 to-violet-500" />
@@ -470,9 +726,10 @@ function Analysis() {
 
                     )}
 
-                    {/* =================================================
+
+                    {/* ==================================================
                         ERROR
-                    ================================================= */}
+                    ================================================== */}
 
                     {!loading && error && (
 
@@ -485,7 +742,9 @@ function Analysis() {
                                 <ErrorState
                                     title="Well Analysis Failed"
                                     message={error}
-                                    onRetry={handleRetry}
+                                    onRetry={
+                                        handleRetry
+                                    }
                                 />
 
                             </div>
@@ -494,9 +753,10 @@ function Analysis() {
 
                     )}
 
-                    {/* =================================================
+
+                    {/* ==================================================
                         RESULTS
-                    ================================================= */}
+                    ================================================== */}
 
                     {!loading &&
                         !error &&
@@ -522,6 +782,7 @@ function Analysis() {
 
                                     </div>
 
+
                                     <div className="hidden items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 sm:flex">
 
                                         <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
@@ -534,18 +795,24 @@ function Analysis() {
 
                                 </div>
 
+
                                 <AnalysisResults
-                                    analysis={analysis}
-                                    onSelectWell={handleSelectWell}
+                                    analysis={
+                                        analysis
+                                    }
+                                    onSelectWell={
+                                        handleSelectWell
+                                    }
                                 />
 
                             </section>
 
                         )}
 
-                    {/* =================================================
+
+                    {/* ==================================================
                         EXAMPLE QUESTIONS
-                    ================================================= */}
+                    ================================================== */}
 
                     {!loading &&
                         !analysis && (
@@ -568,6 +835,7 @@ function Analysis() {
 
                                 </div>
 
+
                                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
 
                                     <ExampleCard
@@ -583,6 +851,7 @@ function Analysis() {
                                         }
                                     />
 
+
                                     <ExampleCard
                                         icon={Zap}
                                         title="Torque Events"
@@ -595,6 +864,7 @@ function Analysis() {
                                             )
                                         }
                                     />
+
 
                                     <ExampleCard
                                         icon={Gauge}
@@ -609,6 +879,7 @@ function Analysis() {
                                         }
                                     />
 
+
                                     <ExampleCard
                                         icon={Database}
                                         title="Formation"
@@ -622,6 +893,7 @@ function Analysis() {
                                         }
                                     />
 
+
                                     <ExampleCard
                                         icon={MapPin}
                                         title="Well Information"
@@ -634,6 +906,7 @@ function Analysis() {
                                             )
                                         }
                                     />
+
 
                                     <ExampleCard
                                         icon={Radar}
@@ -654,9 +927,10 @@ function Analysis() {
 
                         )}
 
-                    {/* =================================================
+
+                    {/* ==================================================
                         PIPELINE
-                    ================================================= */}
+                    ================================================== */}
 
                     <section className="mt-10 overflow-hidden rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_15px_50px_rgba(15,23,42,0.05)] sm:p-8">
 
@@ -664,9 +938,10 @@ function Analysis() {
 
                             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-900 to-blue-900 shadow-lg">
 
-                                <Layers3 className="h-5 w-5 text-white" />
+                                <Database className="h-5 w-5 text-white" />
 
                             </div>
+
 
                             <div>
 
@@ -685,6 +960,7 @@ function Analysis() {
                             </div>
 
                         </div>
+
 
                         <div className="mt-8 grid gap-4 md:grid-cols-4">
 
@@ -724,9 +1000,10 @@ function Analysis() {
 
                     </section>
 
-                    {/* =================================================
+
+                    {/* ==================================================
                         FOOTER STATUS
-                    ================================================= */}
+                    ================================================== */}
 
                     <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50 to-cyan-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
 
@@ -737,6 +1014,7 @@ function Analysis() {
                                 <CheckCircle2 className="h-4 w-4 text-emerald-600" />
 
                             </div>
+
 
                             <div>
 
@@ -751,6 +1029,7 @@ function Analysis() {
                             </div>
 
                         </div>
+
 
                         <div className="flex flex-wrap gap-2">
 
@@ -774,9 +1053,10 @@ function Analysis() {
 
             </main>
 
-            {/* =====================================================
+
+            {/* ==================================================
                 ANIMATION
-            ====================================================== */}
+            ================================================== */}
 
             <style>
                 {`
@@ -800,12 +1080,18 @@ function Analysis() {
     );
 }
 
-/* =============================================================
-   TECH BADGE
-============================================================= */
 
-function TechBadge({ icon: Icon, label }) {
+// ============================================================
+// TECH BADGE
+// ============================================================
+
+function TechBadge({
+    icon: Icon,
+    label,
+}) {
+
     return (
+
         <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[9px] font-bold text-blue-100 backdrop-blur">
 
             <Icon className="h-3 w-3 text-cyan-300" />
@@ -816,26 +1102,32 @@ function TechBadge({ icon: Icon, label }) {
     );
 }
 
-/* =============================================================
-   HERO NODE
-============================================================= */
+
+// ============================================================
+// HERO NODE
+// ============================================================
 
 function HeroNode({
     className,
     icon: Icon,
 }) {
+
     return (
+
         <div
             className={`absolute flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/10 shadow-xl backdrop-blur ${className}`}
         >
+
             <Icon className="h-4 w-4 text-cyan-200" />
+
         </div>
     );
 }
 
-/* =============================================================
-   PARAMETER CARD
-============================================================= */
+
+// ============================================================
+// PARAMETER CARD
+// ============================================================
 
 function ParameterCard({
     icon: Icon,
@@ -845,7 +1137,9 @@ function ParameterCard({
     gradient,
     bg,
 }) {
+
     return (
+
         <div
             className={`group relative overflow-hidden rounded-[22px] border border-white/80 bg-gradient-to-br ${bg} p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
         >
@@ -855,8 +1149,11 @@ function ParameterCard({
                 <div
                     className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br ${gradient} shadow-lg`}
                 >
+
                     <Icon className="h-5 w-5 text-white" />
+
                 </div>
+
 
                 <span className="rounded-full bg-white px-2.5 py-1 text-[8px] font-black uppercase tracking-wider text-slate-400 shadow-sm">
                     Active
@@ -864,13 +1161,16 @@ function ParameterCard({
 
             </div>
 
+
             <p className="mt-4 text-[9px] font-black uppercase tracking-[0.15em] text-slate-400">
                 {title}
             </p>
 
+
             <p className="mt-1 text-base font-black text-slate-900">
                 {value}
             </p>
+
 
             <p className="mt-1 text-[10px] text-slate-500">
                 {description}
@@ -880,16 +1180,19 @@ function ParameterCard({
     );
 }
 
-/* =============================================================
-   PROCESSING STEP
-============================================================= */
+
+// ============================================================
+// PROCESSING STEP
+// ============================================================
 
 function ProcessingStep({
     icon: Icon,
     label,
     text,
 }) {
+
     return (
+
         <div className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4">
 
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
@@ -897,6 +1200,7 @@ function ProcessingStep({
                 <Icon className="h-4 w-4 animate-pulse text-blue-600" />
 
             </div>
+
 
             <div>
 
@@ -914,9 +1218,10 @@ function ProcessingStep({
     );
 }
 
-/* =============================================================
-   EXAMPLE CARD
-============================================================= */
+
+// ============================================================
+// EXAMPLE CARD
+// ============================================================
 
 function ExampleCard({
     icon: Icon,
@@ -926,16 +1231,20 @@ function ExampleCard({
     gradient,
     onClick,
 }) {
+
     return (
+
         <button
             type="button"
             onClick={onClick}
+            disabled={false}
             className="group relative overflow-hidden rounded-[24px] border border-white bg-white p-5 text-left shadow-[0_10px_30px_rgba(15,23,42,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
         >
 
             <div
                 className={`absolute right-[-30px] top-[-30px] h-28 w-28 rounded-full bg-gradient-to-br ${gradient} opacity-[0.08] blur-xl`}
             />
+
 
             <div className="relative">
 
@@ -944,20 +1253,26 @@ function ExampleCard({
                     <div
                         className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br ${gradient} shadow-lg`}
                     >
+
                         <Icon className="h-5 w-5 text-white" />
+
                     </div>
+
 
                     <ArrowRight className="h-4 w-4 text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-blue-500" />
 
                 </div>
 
+
                 <p className="mt-4 text-[9px] font-black uppercase tracking-[0.16em] text-slate-400">
                     {title}
                 </p>
 
+
                 <p className="mt-1 text-sm font-black leading-5 text-slate-800 group-hover:text-blue-700">
                     {question}
                 </p>
+
 
                 <p className="mt-2 text-[10px] leading-5 text-slate-500">
                     {description}
@@ -969,9 +1284,10 @@ function ExampleCard({
     );
 }
 
-/* =============================================================
-   PIPELINE STEP
-============================================================= */
+
+// ============================================================
+// PIPELINE STEP
+// ============================================================
 
 function PipelineStep({
     number,
@@ -980,22 +1296,29 @@ function PipelineStep({
     description,
     gradient,
 }) {
+
     return (
+
         <div className="group rounded-2xl border border-slate-100 bg-slate-50 p-5 text-center transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-xl">
 
             <div
                 className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${gradient} shadow-lg`}
             >
+
                 <Icon className="h-6 w-6 text-white" />
+
             </div>
+
 
             <span className="mt-4 inline-block rounded-full bg-white px-2.5 py-1 text-[8px] font-black tracking-[0.16em] text-slate-400 shadow-sm">
                 STEP {number}
             </span>
 
+
             <h3 className="mt-3 text-sm font-black text-slate-900">
                 {title}
             </h3>
+
 
             <p className="mt-1 text-[10px] leading-5 text-slate-500">
                 {description}
@@ -1004,5 +1327,6 @@ function PipelineStep({
         </div>
     );
 }
+
 
 export default Analysis;
