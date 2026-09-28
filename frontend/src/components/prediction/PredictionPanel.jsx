@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
     BrainCircuit,
     Ruler,
@@ -5,6 +6,29 @@ import {
     RotateCcw,
     MapPin,
 } from "lucide-react";
+
+
+// Manual parameter fields (label, key, unit, example)
+const PARAMETER_FIELDS = [
+    { key: "rop_m_hr", label: "ROP", unit: "m/hr", example: "13" },
+    { key: "mud_weight_sg", label: "Mud Weight", unit: "SG", example: "1.20" },
+    { key: "torque_knm", label: "Torque", unit: "kN·m", example: "17" },
+    { key: "ecd_sg", label: "ECD", unit: "SG", example: "1.25" },
+    { key: "pump_rate_l_min", label: "Pump Rate", unit: "L/min", example: "2200" },
+];
+
+const EMPTY_PARAMS = {
+    rop_m_hr: "",
+    mud_weight_sg: "",
+    torque_knm: "",
+    ecd_sg: "",
+    pump_rate_l_min: "",
+    distance_km: "",
+};
+
+const isNumber = (value) =>
+    value !== "" && Number.isFinite(Number(value));
+
 
 function PredictionPanel({
     wellId,
@@ -15,42 +39,12 @@ function PredictionPanel({
     onReset,
     loading = false,
 }) {
-    const handleSubmit = (event) => {
-        event.preventDefault();
 
-        if (loading) {
-            return;
-        }
+    const [useManual, setUseManual] = useState(false);
+    const [params, setParams] = useState(EMPTY_PARAMS);
 
-        const cleanWellId = wellId.trim();
-        const numericDepth = Number(depth);
-
-        // Validate Well ID
-        if (!cleanWellId) {
-            return;
-        }
-
-        // Validate depth
-        if (
-            depth === "" ||
-            !Number.isFinite(numericDepth) ||
-            numericDepth < 0
-        ) {
-            return;
-        }
-
-        onPredict();
-    };
-
-    const handleReset = () => {
-        if (onReset) {
-            onReset();
-            return;
-        }
-
-        setWellId("");
-        setDepth("");
-    };
+    const updateParam = (key, value) =>
+        setParams((current) => ({ ...current, [key]: value }));
 
     const numericDepth = Number(depth);
 
@@ -59,10 +53,55 @@ function PredictionPanel({
         Number.isFinite(numericDepth) &&
         numericDepth >= 0;
 
+    // All five model inputs are required in manual mode.
+    // Distance is optional (calculated from the nearest well when empty).
+    const areParamsValid =
+        PARAMETER_FIELDS.every((field) => isNumber(params[field.key])) &&
+        (params.distance_km === "" ||
+            (isNumber(params.distance_km) &&
+                Number(params.distance_km) >= 0));
+
     const canPredict =
         !loading &&
         wellId.trim() !== "" &&
-        isDepthValid;
+        isDepthValid &&
+        (!useManual || areParamsValid);
+
+    const buildManualParams = () => ({
+        rop_m_hr: Number(params.rop_m_hr),
+        mud_weight_sg: Number(params.mud_weight_sg),
+        torque_knm: Number(params.torque_knm),
+        ecd_sg: Number(params.ecd_sg),
+        pump_rate_l_min: Number(params.pump_rate_l_min),
+        distance_km:
+            params.distance_km === ""
+                ? null
+                : Number(params.distance_km),
+    });
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+
+        if (!canPredict) {
+            return;
+        }
+
+        // null = look up parameters in the dataset (normal mode)
+        onPredict(useManual ? buildManualParams() : null);
+    };
+
+    const handleReset = () => {
+        setUseManual(false);
+        setParams(EMPTY_PARAMS);
+
+        if (onReset) {
+            onReset();
+            return;
+        }
+
+        setWellId("");
+        setDepth("");
+    };
 
     return (
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -203,7 +242,7 @@ function PredictionPanel({
                             )}
 
 
-                        {isDepthValid && (
+                        {isDepthValid && !useManual && (
                             <p className="mt-2 text-[10px] text-slate-400">
                                 Prediction features are selected
                                 using the nearest available depth.
@@ -211,6 +250,141 @@ function PredictionPanel({
                         )}
 
                     </div>
+
+                </div>
+
+
+                {/* =====================================================
+                    MANUAL PARAMETERS
+                ====================================================== */}
+
+                <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+
+                    <label className="flex cursor-pointer items-start gap-3">
+
+                        <input
+                            type="checkbox"
+                            checked={useManual}
+                            onChange={(event) =>
+                                setUseManual(event.target.checked)
+                            }
+                            disabled={loading}
+                            className="mt-1 h-4 w-4 rounded border-slate-300"
+                        />
+
+                        <span>
+
+                            <span className="block text-xs font-extrabold text-slate-800">
+                                Enter drilling parameters manually
+                            </span>
+
+                            <span className="mt-1 block text-[11px] leading-5 text-slate-500">
+                                Use this for a well with no parameter
+                                data in the dataset, for example a well
+                                added from an uploaded report. The model
+                                will run on the values you enter.
+                            </span>
+
+                        </span>
+
+                    </label>
+
+
+                    {useManual && (
+
+                        <div className="mt-4">
+
+                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+
+                                {PARAMETER_FIELDS.map((field) => (
+
+                                    <div key={field.key}>
+
+                                        <label
+                                            htmlFor={`param-${field.key}`}
+                                            className="mb-1 block text-[10px] font-extrabold uppercase tracking-wider text-slate-500"
+                                        >
+                                            {field.label}
+                                        </label>
+
+                                        <div className="relative">
+
+                                            <input
+                                                id={`param-${field.key}`}
+                                                type="number"
+                                                step="any"
+                                                value={params[field.key]}
+                                                onChange={(event) =>
+                                                    updateParam(
+                                                        field.key,
+                                                        event.target.value
+                                                    )
+                                                }
+                                                placeholder={`e.g. ${field.example}`}
+                                                disabled={loading}
+                                                className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-3 pr-16 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-50 disabled:opacity-60"
+                                            />
+
+                                            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">
+                                                {field.unit}
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                ))}
+
+
+                                <div>
+
+                                    <label
+                                        htmlFor="param-distance_km"
+                                        className="mb-1 block text-[10px] font-extrabold uppercase tracking-wider text-slate-500"
+                                    >
+                                        Distance (optional)
+                                    </label>
+
+                                    <div className="relative">
+
+                                        <input
+                                            id="param-distance_km"
+                                            type="number"
+                                            min="0"
+                                            step="any"
+                                            value={params.distance_km}
+                                            onChange={(event) =>
+                                                updateParam(
+                                                    "distance_km",
+                                                    event.target.value
+                                                )
+                                            }
+                                            placeholder="auto"
+                                            disabled={loading}
+                                            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-3 pr-12 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-50 disabled:opacity-60"
+                                        />
+
+                                        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">
+                                            km
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <p className="mt-3 text-[10px] leading-5 text-slate-400">
+                                All five parameters are required. If the
+                                distance is left empty, it is calculated as
+                                the distance from this well to the nearest
+                                other well.
+                            </p>
+
+                        </div>
+
+                    )}
 
                 </div>
 

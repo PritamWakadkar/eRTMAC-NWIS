@@ -48,13 +48,16 @@ class DocumentService:
                 f"Document not found: {file_path}"
             )
 
-        file_name = file_path.name
+        if file_path.suffix.lower() != ".pdf":
+            raise ValueError(
+                "Only PDF documents are supported."
+            )
 
+        file_name = file_path.name
         document_id = file_path.stem
 
-        well_id = self.extract_well_id(
-            file_name
-        )
+        # Try filename first.
+        well_id = self.extract_well_id(file_name)
 
         document_type = self.extract_document_type(
             file_name
@@ -96,10 +99,20 @@ class DocumentService:
                 ON CONFLICT (document_id)
                 DO UPDATE SET
                     file_name = EXCLUDED.file_name,
-                    well_id = EXCLUDED.well_id,
-                    document_type = EXCLUDED.document_type,
+                    well_id = COALESCE(
+                        EXCLUDED.well_id,
+                        documents.well_id
+                    ),
+                    document_type = COALESCE(
+                        EXCLUDED.document_type,
+                        documents.document_type
+                    ),
                     status = EXCLUDED.status,
-                    error_message = EXCLUDED.error_message
+                    page_count = 0,
+                    chunk_count = 0,
+                    embedding_count = 0,
+                    error_message = NULL,
+                    processed_at = NULL
                 """,
                 (
                     document_id,
@@ -141,13 +154,88 @@ class DocumentService:
 
     def extract_well_id(self, file_name):
 
-        match = re.search(
-            r"\b(W\d+)\b",
-            file_name.upper()
-        )
+        if not file_name:
+            return None
 
-        if match:
-            return match.group(1)
+        name = Path(
+            str(file_name)
+        ).stem.upper()
+
+        patterns = [
+
+            # Example:
+            # W107
+            r"(?<![A-Z0-9])W(\d+)(?![A-Z0-9])",
+
+            # Example:
+            # _W107_
+            r"(?:^|[_\-\s.])W(\d+)(?:[_\-\s.]|$)",
+
+        ]
+
+        for pattern in patterns:
+
+            match = re.search(
+                pattern,
+                name
+            )
+
+            if match:
+
+                return (
+                    f"W{match.group(1)}"
+                ).upper()
+
+        return None
+
+    # ============================================================
+    # EXTRACT WELL ID FROM PDF TEXT
+    # ============================================================
+
+    def extract_well_id_from_text(
+        self,
+        text
+    ):
+
+        if not text:
+            return None
+
+        patterns = [
+
+            r"(?:Well\s*ID|Well\s*Name|Well\s*No\.?|Well\s*Number)"
+            r"\s*[:\-]?\s*(W\d+)",
+
+            r"\b(W\d+)\b",
+
+        ]
+
+        for pattern in patterns:
+
+            matches = re.findall(
+                pattern,
+                text,
+                flags=re.IGNORECASE
+            )
+
+            if matches:
+
+                for match in matches:
+
+                    if isinstance(
+                        match,
+                        tuple
+                    ):
+                        match = match[-1]
+
+                    value = str(
+                        match
+                    ).upper().strip()
+
+                    if re.fullmatch(
+                        r"W\d+",
+                        value
+                    ):
+                        return value
 
         return None
 
@@ -155,9 +243,14 @@ class DocumentService:
     # EXTRACT DOCUMENT TYPE
     # ============================================================
 
-    def extract_document_type(self, file_name):
+    def extract_document_type(
+        self,
+        file_name
+    ):
 
-        name = file_name.upper()
+        name = str(
+            file_name
+        ).upper()
 
         if "DDR" in name:
             return "DDR"
@@ -182,30 +275,15 @@ class DocumentService:
         pages,
         file_name
     ):
-        """
-        Extract well information from the PDF.
-
-        Returns:
-
-        {
-            well_id,
-            formation,
-            total_depth,
-            latitude,
-            longitude,
-            location_name
-        }
-        """
-
-        # --------------------------------------------------------
-        # Combine all extracted PDF text
-        # --------------------------------------------------------
 
         text_parts = []
 
         for page in pages:
 
-            if not isinstance(page, dict):
+            if not isinstance(
+                page,
+                dict
+            ):
                 continue
 
             page_text = page.get(
@@ -214,6 +292,7 @@ class DocumentService:
             )
 
             if page_text:
+
                 text_parts.append(
                     str(page_text)
                 )
@@ -233,6 +312,12 @@ class DocumentService:
                 file_name
             )
 
+            if not isinstance(
+                metadata,
+                dict
+            ):
+                metadata = {}
+
         except Exception:
 
             metadata = {}
@@ -246,9 +331,13 @@ class DocumentService:
             or self.extract_well_id(
                 file_name
             )
+            or self.extract_well_id_from_text(
+                full_text
+            )
         )
 
         if well_id:
+
             well_id = str(
                 well_id
             ).upper().strip()
@@ -265,6 +354,7 @@ class DocumentService:
         )
 
         if formation:
+
             formation = str(
                 formation
             ).strip()
@@ -273,40 +363,32 @@ class DocumentService:
         # TOTAL DEPTH
         # --------------------------------------------------------
 
-        total_depth = (
-            self.extract_total_depth(
-                full_text
-            )
+        total_depth = self.extract_total_depth(
+            full_text
         )
 
         # --------------------------------------------------------
         # LATITUDE
         # --------------------------------------------------------
 
-        latitude = (
-            self.extract_latitude(
-                full_text
-            )
+        latitude = self.extract_latitude(
+            full_text
         )
 
         # --------------------------------------------------------
         # LONGITUDE
         # --------------------------------------------------------
 
-        longitude = (
-            self.extract_longitude(
-                full_text
-            )
+        longitude = self.extract_longitude(
+            full_text
         )
 
         # --------------------------------------------------------
-        # LOCATION NAME
+        # LOCATION
         # --------------------------------------------------------
 
-        location_name = (
-            self.extract_location_name(
-                full_text
-            )
+        location_name = self.extract_location_name(
+            full_text
         )
 
         return {
@@ -322,15 +404,21 @@ class DocumentService:
     # EXTRACT FORMATION
     # ============================================================
 
-    def extract_formation(self, text):
+    def extract_formation(
+        self,
+        text
+    ):
+
+        if not text:
+            return None
 
         patterns = [
 
-            r"(?:Primary\s+)?Formation\s*:\s*([^\n]+)",
+            r"(?:Primary\s+)?Formation\s*[:\-]\s*([^\n]+)",
 
-            r"Formation\s*[-:]\s*([^\n]+)",
+            r"Geological\s+Formation\s*[:\-]\s*([^\n]+)",
 
-            r"Geological\s+Formation\s*[-:]\s*([^\n]+)",
+            r"Formation\s*[:\-]\s*([^\n]+)",
 
         ]
 
@@ -352,12 +440,11 @@ class DocumentService:
                     value
                 )
 
-                # Remove accidental trailing labels
                 value = re.split(
-                    r"\s+(?:Drilling|Total Depth|Depth|Mud|ECD)\b",
+                    r"\s+(?:Drilling|Total\s+Depth|Depth|Mud|ECD|Recorded)\b",
                     value,
                     flags=re.IGNORECASE
-                )[0]
+                )[0].strip()
 
                 if value:
                     return value
@@ -368,7 +455,13 @@ class DocumentService:
     # EXTRACT TOTAL DEPTH
     # ============================================================
 
-    def extract_total_depth(self, text):
+    def extract_total_depth(
+        self,
+        text
+    ):
+
+        if not text:
+            return None
 
         patterns = [
 
@@ -394,11 +487,18 @@ class DocumentService:
             if match:
 
                 try:
-                    return float(
+
+                    value = float(
                         match.group(1)
                     )
 
-                except ValueError:
+                    if value > 0:
+                        return value
+
+                except (
+                    TypeError,
+                    ValueError
+                ):
                     pass
 
         return None
@@ -407,14 +507,20 @@ class DocumentService:
     # EXTRACT LATITUDE
     # ============================================================
 
-    def extract_latitude(self, text):
+    def extract_latitude(
+        self,
+        text
+    ):
+
+        if not text:
+            return None
 
         patterns = [
 
             r"Latitude\s*[:\-]\s*"
             r"([+-]?\d+(?:\.\d+)?)",
 
-            r"Lat(?:itude)?\s*[:\-]\s*"
+            r"\bLat(?:itude)?\s*[:\-]\s*"
             r"([+-]?\d+(?:\.\d+)?)",
 
         ]
@@ -438,7 +544,10 @@ class DocumentService:
                     if -90 <= value <= 90:
                         return value
 
-                except ValueError:
+                except (
+                    TypeError,
+                    ValueError
+                ):
                     pass
 
         return None
@@ -447,14 +556,20 @@ class DocumentService:
     # EXTRACT LONGITUDE
     # ============================================================
 
-    def extract_longitude(self, text):
+    def extract_longitude(
+        self,
+        text
+    ):
+
+        if not text:
+            return None
 
         patterns = [
 
             r"Longitude\s*[:\-]\s*"
             r"([+-]?\d+(?:\.\d+)?)",
 
-            r"Long(?:itude)?\s*[:\-]\s*"
+            r"\bLong(?:itude)?\s*[:\-]\s*"
             r"([+-]?\d+(?:\.\d+)?)",
 
         ]
@@ -478,7 +593,10 @@ class DocumentService:
                     if -180 <= value <= 180:
                         return value
 
-                except ValueError:
+                except (
+                    TypeError,
+                    ValueError
+                ):
                     pass
 
         return None
@@ -487,23 +605,36 @@ class DocumentService:
     # EXTRACT LOCATION NAME
     # ============================================================
 
-    def extract_location_name(self, text):
+    def extract_location_name(
+        self,
+        text
+    ):
+
+        if not text:
+            return None
 
         patterns = [
 
-            r"(?:Village|Village\s+Name)\s*[:\-]\s*([^\n]+)",
+            r"(?:Village|Village\s+Name)"
+            r"\s*[:\-]\s*([^\n]+)",
 
-            r"(?:City|City\s+Name)\s*[:\-]\s*([^\n]+)",
+            r"(?:City|City\s+Name)"
+            r"\s*[:\-]\s*([^\n]+)",
 
-            r"(?:Town|Town\s+Name)\s*[:\-]\s*([^\n]+)",
+            r"(?:Town|Town\s+Name)"
+            r"\s*[:\-]\s*([^\n]+)",
 
-            r"(?:District)\s*[:\-]\s*([^\n]+)",
+            r"(?:District)"
+            r"\s*[:\-]\s*([^\n]+)",
 
-            r"(?:Field|Field\s+Name)\s*[:\-]\s*([^\n]+)",
+            r"(?:Field|Field\s+Name)"
+            r"\s*[:\-]\s*([^\n]+)",
 
-            r"(?:Location|Location\s+Name)\s*[:\-]\s*([^\n]+)",
+            r"(?:Location|Location\s+Name)"
+            r"\s*[:\-]\s*([^\n]+)",
 
-            r"(?:Surface\s+Location)\s*[:\-]\s*([^\n]+)",
+            r"(?:Surface\s+Location)"
+            r"\s*[:\-]\s*([^\n]+)",
 
         ]
 
@@ -531,176 +662,331 @@ class DocumentService:
         return None
 
     # ============================================================
-    # UPSERT WELL INTO POSTGRESQL
+    # UPDATE DOCUMENT WELL METADATA
+    # ============================================================
+
+    def update_document_metadata(
+        self,
+        document_id,
+        well_id=None,
+        document_type=None
+    ):
+
+        connection = None
+        cursor = None
+
+        try:
+
+            connection = get_connection()
+            cursor = connection.cursor()
+
+            cursor.execute(
+                """
+                UPDATE documents
+                SET
+                    well_id = COALESCE(
+                        %s,
+                        well_id
+                    ),
+                    document_type = COALESCE(
+                        %s,
+                        document_type
+                    )
+                WHERE document_id = %s
+                """,
+                (
+                    well_id,
+                    document_type,
+                    document_id
+                )
+            )
+
+            connection.commit()
+
+        except Exception:
+
+            if connection:
+                connection.rollback()
+
+            raise
+
+        finally:
+
+            if cursor:
+                cursor.close()
+
+            if connection:
+                connection.close()
+
+    # ============================================================
+    # UPSERT WELL
     # ============================================================
 
     def upsert_well(
         self,
         well_metadata
     ):
-        """
-        Automatically create/update a record in the PostgreSQL wells table.
 
-        IMPORTANT:
-        - Latitude/longitude are optional because many drilling reports do
-          not contain coordinates.
-        - Missing coordinates are stored as NULL.
-        - If a well already exists, existing coordinates are preserved when
-          the current PDF does not contain them.
-        - The PostGIS `location` geometry is created only when both
-          coordinates are available.
-        """
-
-        well_id = well_metadata.get("well_id")
+        well_id = well_metadata.get(
+            "well_id"
+        )
 
         if not well_id:
+
             raise ValueError(
                 "Unable to determine well ID from document."
             )
 
-        well_id = str(well_id).upper().strip()
+        well_id = str(
+            well_id
+        ).upper().strip()
 
         latitude = self._normalize_latitude(
-            well_metadata.get("latitude")
+            well_metadata.get(
+                "latitude"
+            )
         )
 
         longitude = self._normalize_longitude(
-            well_metadata.get("longitude")
+            well_metadata.get(
+                "longitude"
+            )
         )
 
-        total_depth = well_metadata.get("total_depth")
-        formation = well_metadata.get("formation")
-        location_name = well_metadata.get("location_name")
+        total_depth = well_metadata.get(
+            "total_depth"
+        )
+
+        formation = well_metadata.get(
+            "formation"
+        )
+
+        location_name = well_metadata.get(
+            "location_name"
+        )
 
         connection = None
         cursor = None
 
         try:
+
             connection = get_connection()
             cursor = connection.cursor()
 
-            # --------------------------------------------------------
-            # IMPORTANT:
-            # Do not use fake values such as 0 for missing coordinates.
-            # PostgreSQL should store missing coordinates as NULL.
-            #
-            # The wells.latitude and wells.longitude columns therefore
-            # need to allow NULL:
-            #
-            # ALTER TABLE wells ALTER COLUMN latitude DROP NOT NULL;
-            # ALTER TABLE wells ALTER COLUMN longitude DROP NOT NULL;
-            # --------------------------------------------------------
+            # ----------------------------------------------------
+            # Check existing well
+            # ----------------------------------------------------
 
             cursor.execute(
                 """
-                INSERT INTO wells (
-                    well_id,
+                SELECT
                     latitude,
                     longitude,
                     total_depth,
                     formation,
-                    location,
                     location_name
-                )
-                VALUES (
-                    %s,
-                    %s,
-                    %s,
-                    %s,
-                    %s,
-                    CASE
-                        WHEN %s IS NOT NULL
-                         AND %s IS NOT NULL
-                        THEN ST_SetSRID(
-                            ST_MakePoint(%s, %s),
-                            4326
-                        )::geometry
-                        ELSE NULL
-                    END,
-                    %s
-                )
-
-                ON CONFLICT (well_id)
-                DO UPDATE SET
-                    latitude = COALESCE(
-                        EXCLUDED.latitude,
-                        wells.latitude
-                    ),
-
-                    longitude = COALESCE(
-                        EXCLUDED.longitude,
-                        wells.longitude
-                    ),
-
-                    total_depth = COALESCE(
-                        EXCLUDED.total_depth,
-                        wells.total_depth
-                    ),
-
-                    formation = COALESCE(
-                        EXCLUDED.formation,
-                        wells.formation
-                    ),
-
-                    location = COALESCE(
-                        EXCLUDED.location,
-                        wells.location
-                    ),
-
-                    location_name = COALESCE(
-                        EXCLUDED.location_name,
-                        wells.location_name
-                    )
+                FROM wells
+                WHERE UPPER(well_id) = %s
                 """,
                 (
                     well_id,
-                    latitude,
-                    longitude,
-                    total_depth,
-                    formation,
-
-                    # Used by CASE to determine whether a geometry
-                    # should be created.
-                    latitude,
-                    longitude,
-
-                    # ST_MakePoint(longitude, latitude)
-                    longitude,
-                    latitude,
-
-                    location_name
                 )
             )
 
+            existing = cursor.fetchone()
+
+            # ----------------------------------------------------
+            # Existing well
+            # ----------------------------------------------------
+
+            if existing:
+
+                existing_latitude = existing[0]
+                existing_longitude = existing[1]
+                existing_total_depth = existing[2]
+                existing_formation = existing[3]
+                existing_location_name = existing[4]
+
+                final_latitude = (
+                    latitude
+                    if latitude is not None
+                    else existing_latitude
+                )
+
+                final_longitude = (
+                    longitude
+                    if longitude is not None
+                    else existing_longitude
+                )
+
+                final_total_depth = (
+                    total_depth
+                    if total_depth is not None
+                    else existing_total_depth
+                )
+
+                final_formation = (
+                    formation
+                    if formation
+                    else existing_formation
+                )
+
+                final_location_name = (
+                    location_name
+                    if location_name
+                    else existing_location_name
+                )
+
+                # ----------------------------------------------
+                # Existing well WITH coordinates
+                # ----------------------------------------------
+
+                if (
+                    final_latitude is not None
+                    and final_longitude is not None
+                ):
+
+                    cursor.execute(
+                        """
+                        UPDATE wells
+                        SET
+                            latitude = %s,
+                            longitude = %s,
+                            total_depth = %s,
+                            formation = %s,
+                            location = ST_SetSRID(
+                                ST_MakePoint(
+                                    %s,
+                                    %s
+                                ),
+                                4326
+                            )::geometry,
+                            location_name = %s
+                        WHERE UPPER(well_id) = %s
+                        """,
+                        (
+                            final_latitude,
+                            final_longitude,
+                            final_total_depth,
+                            final_formation,
+                            final_longitude,
+                            final_latitude,
+                            final_location_name,
+                            well_id
+                        )
+                    )
+
+                # ----------------------------------------------
+                # Existing well WITHOUT coordinates
+                # ----------------------------------------------
+
+                else:
+
+                    cursor.execute(
+                        """
+                        UPDATE wells
+                        SET
+                            total_depth = %s,
+                            formation = %s,
+                            location_name = %s
+                        WHERE UPPER(well_id) = %s
+                        """,
+                        (
+                            final_total_depth,
+                            final_formation,
+                            final_location_name,
+                            well_id
+                        )
+                    )
+
+            # ----------------------------------------------------
+            # New well
+            # ----------------------------------------------------
+
+            else:
+
+                # ----------------------------------------------
+                # New well WITH coordinates
+                # ----------------------------------------------
+
+                if (
+                    latitude is not None
+                    and longitude is not None
+                ):
+
+                    cursor.execute(
+                        """
+                        INSERT INTO wells (
+                            well_id,
+                            latitude,
+                            longitude,
+                            total_depth,
+                            formation,
+                            location,
+                            location_name
+                        )
+                        VALUES (
+                            %s,
+                            %s,
+                            %s,
+                            %s,
+                            %s,
+                            ST_SetSRID(
+                                ST_MakePoint(
+                                    %s,
+                                    %s
+                                ),
+                                4326
+                            )::geometry,
+                            %s
+                        )
+                        """,
+                        (
+                            well_id,
+                            latitude,
+                            longitude,
+                            total_depth,
+                            formation,
+                            longitude,
+                            latitude,
+                            location_name
+                        )
+                    )
+
+                # ----------------------------------------------
+                # New well WITHOUT coordinates
+                # ----------------------------------------------
+
+                else:
+
+                    cursor.execute(
+                        """
+                        INSERT INTO wells (
+                            well_id,
+                            latitude,
+                            longitude,
+                            total_depth,
+                            formation,
+                            location_name
+                        )
+                        VALUES (
+                            %s,
+                            NULL,
+                            NULL,
+                            %s,
+                            %s,
+                            %s
+                        )
+                        """,
+                        (
+                            well_id,
+                            total_depth,
+                            formation,
+                            location_name
+                        )
+                    )
+
             connection.commit()
-
-            print(
-                "\n✅ WELL DATABASE SYNCHRONIZED"
-            )
-
-            print(
-                f"Well ID       : {well_id}"
-            )
-
-            print(
-                f"Formation     : {formation}"
-            )
-
-            print(
-                f"Total depth   : {total_depth}"
-            )
-
-            print(
-                f"Latitude      : {latitude}"
-            )
-
-            print(
-                f"Longitude     : {longitude}"
-            )
-
-            print(
-                f"Location name : {location_name}"
-            )
 
             return {
                 "success": True,
@@ -709,7 +995,7 @@ class DocumentService:
                 "longitude": longitude,
                 "total_depth": total_depth,
                 "formation": formation,
-                "location_name": location_name,
+                "location_name": location_name
             }
 
         except Exception:
@@ -731,20 +1017,23 @@ class DocumentService:
     # NORMALIZE LATITUDE
     # ============================================================
 
-    def _normalize_latitude(self, value):
-        """
-        Convert latitude to float when valid.
-
-        Returns None when the document does not provide a valid
-        latitude. Never replaces missing coordinates with 0.
-        """
+    def _normalize_latitude(
+        self,
+        value
+    ):
 
         if value is None:
             return None
 
         try:
+
             value = float(value)
-        except (TypeError, ValueError):
+
+        except (
+            TypeError,
+            ValueError
+        ):
+
             return None
 
         if -90 <= value <= 90:
@@ -756,20 +1045,23 @@ class DocumentService:
     # NORMALIZE LONGITUDE
     # ============================================================
 
-    def _normalize_longitude(self, value):
-        """
-        Convert longitude to float when valid.
-
-        Returns None when the document does not provide a valid
-        longitude. Never replaces missing coordinates with 0.
-        """
+    def _normalize_longitude(
+        self,
+        value
+    ):
 
         if value is None:
             return None
 
         try:
+
             value = float(value)
-        except (TypeError, ValueError):
+
+        except (
+            TypeError,
+            ValueError
+        ):
+
             return None
 
         if -180 <= value <= 180:
@@ -872,24 +1164,18 @@ class DocumentService:
                 """
                 UPDATE documents
                 SET
-                    page_count =
-                        COALESCE(
-                            %s,
-                            page_count
-                        ),
-
-                    chunk_count =
-                        COALESCE(
-                            %s,
-                            chunk_count
-                        ),
-
-                    embedding_count =
-                        COALESCE(
-                            %s,
-                            embedding_count
-                        )
-
+                    page_count = COALESCE(
+                        %s,
+                        page_count
+                    ),
+                    chunk_count = COALESCE(
+                        %s,
+                        chunk_count
+                    ),
+                    embedding_count = COALESCE(
+                        %s,
+                        embedding_count
+                    )
                 WHERE document_id = %s
                 """,
                 (
@@ -1009,7 +1295,7 @@ class DocumentService:
             )
 
             # ====================================================
-            # 2. EXTRACT WELL INFORMATION
+            # 2. EXTRACT WELL METADATA
             # ====================================================
 
             self.update_status(
@@ -1045,18 +1331,33 @@ class DocumentService:
             if not extracted_well_id:
 
                 raise ValueError(
-                    "Well ID could not be extracted "
-                    "from the PDF."
+                    "Well ID could not be detected "
+                    "from the filename or PDF content."
                 )
 
             # ====================================================
-            # 4. SYNCHRONIZE WELL TABLE
+            # 4. IMPORTANT:
+            #    UPDATE documents.well_id
             # ====================================================
 
-            self.update_status(
-                document_id,
-                "metadata_extraction"
+            self.update_document_metadata(
+                document_id=document_id,
+                well_id=extracted_well_id,
+                document_type=(
+                    self.extract_document_type(
+                        document.file_name
+                    )
+                )
             )
+
+            print(
+                f"\n✅ Document well ID updated: "
+                f"{extracted_well_id}"
+            )
+
+            # ====================================================
+            # 5. SYNCHRONIZE WELLS TABLE
+            # ====================================================
 
             well_database_result = (
                 self.upsert_well(
@@ -1064,8 +1365,17 @@ class DocumentService:
                 )
             )
 
+            print(
+                "\n✅ Well table synchronized."
+            )
+
+            print(
+                f"Well ID: "
+                f"{well_database_result['well_id']}"
+            )
+
             # ====================================================
-            # 5. PROGRESS CALLBACK
+            # 6. RAG PROGRESS CALLBACK
             # ====================================================
 
             def progress_callback(
@@ -1084,11 +1394,11 @@ class DocumentService:
                     )
 
                 print(
-                    f"[{file_name}] → {status}"
+                    f"[{file_name}] -> {status}"
                 )
 
             # ====================================================
-            # 6. GET ALL PDFs
+            # 7. GET ALL PDF DOCUMENTS
             # ====================================================
 
             pdf_files = sorted(
@@ -1104,7 +1414,7 @@ class DocumentService:
                 )
 
             # ====================================================
-            # 7. RAG INGESTION
+            # 8. RAG INGESTION
             # ====================================================
 
             print(
@@ -1121,7 +1431,7 @@ class DocumentService:
             )
 
             # ====================================================
-            # 8. FIND CURRENT DOCUMENT STATS
+            # 9. FIND CURRENT DOCUMENT STATS
             # ====================================================
 
             current_stats = None
@@ -1134,9 +1444,7 @@ class DocumentService:
             ):
 
                 if (
-                    item.get(
-                        "file_name"
-                    )
+                    item.get("file_name")
                     == document.file_name
                 ):
 
@@ -1144,12 +1452,13 @@ class DocumentService:
                     break
 
             # ====================================================
-            # 9. UPDATE COUNTS
+            # 10. UPDATE PROCESSING COUNTS
             # ====================================================
 
             if current_stats:
 
                 self.update_processing_counts(
+
                     document_id,
 
                     page_count=current_stats.get(
@@ -1169,7 +1478,7 @@ class DocumentService:
                 )
 
             # ====================================================
-            # 10. PROCESSED
+            # 11. FINAL DOCUMENT STATUS
             # ====================================================
 
             self.update_status(
@@ -1190,17 +1499,17 @@ class DocumentService:
             )
 
             print(
-                f"Well synchronized: "
+                f"Well synchronized : "
                 f"{well_database_result['well_id']}"
             )
 
             print(
-                f"RAG chunks: "
+                f"RAG chunks        : "
                 f"{ingestion_result.get('chunks', 0)}"
             )
 
             print(
-                f"FAISS vectors: "
+                f"FAISS vectors     : "
                 f"{ingestion_result.get('faiss_vectors', 0)}"
             )
 
@@ -1236,6 +1545,7 @@ class DocumentService:
                 )
 
             except Exception:
+
                 pass
 
             return self.build_result(
@@ -1293,7 +1603,7 @@ class DocumentService:
             connection.close()
 
             # ----------------------------------------------------
-            # Delete PDF
+            # Delete physical PDF
             # ----------------------------------------------------
 
             file_deleted = False
@@ -1305,7 +1615,7 @@ class DocumentService:
                 file_deleted = True
 
             # ----------------------------------------------------
-            # Rebuild RAG
+            # Rebuild RAG index
             # ----------------------------------------------------
 
             remaining_files = sorted(
@@ -1322,20 +1632,16 @@ class DocumentService:
                     )
                 )
 
-                rag_index_rebuilt = True
-
             else:
 
                 self.clear_faiss_index()
-
-                rag_index_rebuilt = True
 
                 ingestion_result = {
                     "faiss_vectors": 0
                 }
 
             # ----------------------------------------------------
-            # OPTIONAL WELL CLEANUP
+            # Remove well only if no document references it
             # ----------------------------------------------------
 
             well_deleted = False
@@ -1349,9 +1655,6 @@ class DocumentService:
 
                     connection = get_connection()
                     cursor = connection.cursor()
-
-                    # Only delete the well if no remaining
-                    # document references that well.
 
                     cursor.execute(
                         """
@@ -1400,9 +1703,7 @@ class DocumentService:
                         connection.close()
 
             return {
-                "success": (
-                    deleted_rows > 0
-                ),
+                "success": deleted_rows > 0,
                 "message": (
                     "Document deleted successfully."
                 ),
@@ -1417,9 +1718,7 @@ class DocumentService:
                 "remaining_pdf_count": len(
                     remaining_files
                 ),
-                "rag_index_rebuilt": (
-                    rag_index_rebuilt
-                ),
+                "rag_index_rebuilt": True,
                 "faiss_vectors": (
                     ingestion_result.get(
                         "faiss_vectors",
@@ -1440,14 +1739,12 @@ class DocumentService:
             }
 
     # ============================================================
-    # CLEAR FAISS
+    # CLEAR FAISS INDEX
     # ============================================================
 
     def clear_faiss_index(self):
 
-        embedding_model = (
-            EmbeddingModel()
-        )
+        embedding_model = EmbeddingModel()
 
         dimension = (
             embedding_model
@@ -1455,10 +1752,8 @@ class DocumentService:
             .get_embedding_dimension()
         )
 
-        vector_store = (
-            FAISSStore(
-                dimension
-            )
+        vector_store = FAISSStore(
+            dimension
         )
 
         vector_store.clear()
@@ -1570,7 +1865,7 @@ class DocumentService:
                 connection.close()
 
     # ============================================================
-    # DATABASE ROW → MODEL
+    # DATABASE ROW -> MODEL
     # ============================================================
 
     def row_to_metadata(
@@ -1610,7 +1905,7 @@ class DocumentService:
         )
 
     # ============================================================
-    # BUILD RESULT
+    # BUILD PROCESSING RESULT
     # ============================================================
 
     def build_result(
@@ -1628,15 +1923,21 @@ class DocumentService:
         if document is None:
 
             return DocumentProcessingResult(
+
                 success=success,
+
                 document_id=document_id,
+
                 file_name="",
+
                 status=(
                     "failed"
                     if not success
                     else "processed"
                 ),
+
                 message=message,
+
                 error_message=error_message
             )
 

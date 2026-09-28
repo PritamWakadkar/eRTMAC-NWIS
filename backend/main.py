@@ -47,7 +47,7 @@ app.include_router(document_router)
 # ================================================================
 
 nlp_engine = NLPEngine()
-prediction_engine = DrillingEventPredictor()
+prediction_engine = DrillingEventPredictor(rag=nlp_engine.rag)
 
 
 # ================================================================
@@ -73,6 +73,99 @@ class PredictionRequest(BaseModel):
 def home():
     return {
         "message": "eRTMAC-NWIS API is running"
+    }
+
+
+# ================================================================
+# WELL MAP  (all wells for the map page)
+# ================================================================
+
+def _to_float(value):
+
+    try:
+        return float(value)
+
+    except (TypeError, ValueError):
+        return None
+
+
+@app.get("/api/well-map")
+def get_well_map():
+    """
+    Returns every well. Wells with missing/invalid coordinates are not
+    dropped: they are returned in `wells_without_coordinates`.
+    """
+
+    connection = None
+    cursor = None
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT
+                well_id,
+                latitude,
+                longitude,
+                total_depth,
+                formation
+            FROM wells
+            ORDER BY well_id
+            """
+        )
+
+        rows = cursor.fetchall()
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Could not load wells: {e}"
+        )
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if connection:
+            connection.close()
+
+    mapped = []
+    unmapped = []
+
+    for well_id, latitude, longitude, total_depth, formation in rows:
+
+        lat = _to_float(latitude)
+        lon = _to_float(longitude)
+
+        item = {
+            "well_id": str(well_id),
+            "latitude": lat,
+            "longitude": lon,
+            "total_depth_m": _to_float(total_depth),
+            "formation": formation
+        }
+
+        valid = (
+            lat is not None
+            and lon is not None
+            and -90 <= lat <= 90
+            and -180 <= lon <= 180
+        )
+
+        if valid:
+            mapped.append(item)
+        else:
+            unmapped.append(item)
+
+    return {
+        "count": len(rows),
+        "wells": mapped,
+        "wells_without_coordinates": unmapped
     }
 
 

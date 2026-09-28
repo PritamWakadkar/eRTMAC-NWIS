@@ -7,289 +7,87 @@ from .config import (
 
 
 # ==========================================================
-# CREATE SYNTHETIC TRAINING DATA
+# SYNTHETIC DRILLING-PARAMETER TABLE
+# (same records as before, written in compact form)
+#
+# Used by FeatureLookup to fetch drilling parameters for a
+# well/depth. It is NOT the training data any more: the model
+# is trained from PDF events (see pdf_dataset.py).
+# ==========================================================
+
+FORMATION = "Barail Formation"
+
+WELL_DISTANCE_KM = {
+    "W104": 0.0,
+    "W105": 2.67,
+    "W106": 6.81,
+}
+
+# (well_id, depth_m, rop_m_hr, mud_weight_sg, torque_knm,
+#  ecd_sg, pump_rate_l_min, event)
+RAW_RECORDS = [
+
+    # W104
+    ("W104", 2350, 18.0, 1.16, 10.5, 1.21, 1850, "normal"),
+    ("W104", 2410, 17.5, 1.16, 11.2, 1.23, 1850, "mud_loss"),
+    ("W104", 2440, 17.3, 1.18, 12.0, 1.23, 1850, "normal"),
+    ("W104", 2465, 17.2, 1.18, 14.0, 1.23, 1850, "torque_spike"),
+    ("W104", 2470, 17.0, 1.18, 13.5, 1.23, 1850, "wiper_trip"),
+
+    # W105
+    ("W105", 2500, 16.5, 1.19, 12.0, 1.25, 1900, "normal"),
+    ("W105", 2580, 16.2, 1.19, 12.0, 1.25, 1900, "mud_loss"),
+    ("W105", 2600, 16.0, 1.19, 13.0, 1.25, 1900, "normal"),
+    ("W105", 2630, 15.8, 1.19, 16.0, 1.25, 1900, "torque_spike"),
+    ("W105", 2642, 15.7, 1.19, 15.5, 1.25, 1900, "drag"),
+
+    # W106
+    ("W106", 2500, 17.0, 1.18, 11.0, 1.22, 1880, "normal"),
+    ("W106", 2580, 16.8, 1.18, 11.5, 1.23, 1880, "normal"),
+    ("W106", 2630, 16.7, 1.18, 12.0, 1.23, 1880, "normal"),
+    ("W106", 2650, 16.5, 1.18, 12.5, 1.23, 1880, "normal"),
+
+    # Additional normal conditions
+    ("W104", 2200, 18.5, 1.15, 9.5, 1.20, 1800, "normal"),
+    ("W105", 2300, 17.2, 1.18, 10.5, 1.22, 1880, "normal"),
+    ("W106", 2400, 17.4, 1.17, 10.8, 1.22, 1850, "normal"),
+    ("W104", 2520, 16.8, 1.18, 12.5, 1.24, 1860, "normal"),
+    ("W105", 2700, 15.5, 1.20, 13.5, 1.26, 1920, "normal"),
+    ("W106", 2750, 16.2, 1.19, 12.8, 1.25, 1900, "normal"),
+]
+
+
+# ==========================================================
+# CREATE RECORDS
 # ==========================================================
 
 def create_training_data():
 
-    records = [
+    records = []
 
-        # ==================================================
-        # W104
-        # ==================================================
+    for (
+        well_id,
+        depth_m,
+        rop,
+        mud_weight,
+        torque,
+        ecd,
+        pump_rate,
+        event
+    ) in RAW_RECORDS:
 
-        {
-            "well_id": "W104",
-            "depth_m": 2350,
-            "rop_m_hr": 18.0,
-            "mud_weight_sg": 1.16,
-            "torque_knm": 10.5,
-            "ecd_sg": 1.21,
-            "pump_rate_l_min": 1850,
-            "distance_km": 0.0,
-            "formation": "Barail Formation",
-            "event": "normal"
-        },
-
-        {
-            "well_id": "W104",
-            "depth_m": 2410,
-            "rop_m_hr": 17.5,
-            "mud_weight_sg": 1.16,
-            "torque_knm": 11.2,
-            "ecd_sg": 1.23,
-            "pump_rate_l_min": 1850,
-            "distance_km": 0.0,
-            "formation": "Barail Formation",
-            "event": "mud_loss"
-        },
-
-        {
-            "well_id": "W104",
-            "depth_m": 2440,
-            "rop_m_hr": 17.3,
-            "mud_weight_sg": 1.18,
-            "torque_knm": 12.0,
-            "ecd_sg": 1.23,
-            "pump_rate_l_min": 1850,
-            "distance_km": 0.0,
-            "formation": "Barail Formation",
-            "event": "normal"
-        },
-
-        {
-            "well_id": "W104",
-            "depth_m": 2465,
-            "rop_m_hr": 17.2,
-            "mud_weight_sg": 1.18,
-            "torque_knm": 14.0,
-            "ecd_sg": 1.23,
-            "pump_rate_l_min": 1850,
-            "distance_km": 0.0,
-            "formation": "Barail Formation",
-            "event": "torque_spike"
-        },
-
-        {
-            "well_id": "W104",
-            "depth_m": 2470,
-            "rop_m_hr": 17.0,
-            "mud_weight_sg": 1.18,
-            "torque_knm": 13.5,
-            "ecd_sg": 1.23,
-            "pump_rate_l_min": 1850,
-            "distance_km": 0.0,
-            "formation": "Barail Formation",
-            "event": "wiper_trip"
-        },
-
-        # ==================================================
-        # W105
-        # ==================================================
-
-        {
-            "well_id": "W105",
-            "depth_m": 2500,
-            "rop_m_hr": 16.5,
-            "mud_weight_sg": 1.19,
-            "torque_knm": 12.0,
-            "ecd_sg": 1.25,
-            "pump_rate_l_min": 1900,
-            "distance_km": 2.67,
-            "formation": "Barail Formation",
-            "event": "normal"
-        },
-
-        {
-            "well_id": "W105",
-            "depth_m": 2580,
-            "rop_m_hr": 16.2,
-            "mud_weight_sg": 1.19,
-            "torque_knm": 12.0,
-            "ecd_sg": 1.25,
-            "pump_rate_l_min": 1900,
-            "distance_km": 2.67,
-            "formation": "Barail Formation",
-            "event": "mud_loss"
-        },
-
-        {
-            "well_id": "W105",
-            "depth_m": 2600,
-            "rop_m_hr": 16.0,
-            "mud_weight_sg": 1.19,
-            "torque_knm": 13.0,
-            "ecd_sg": 1.25,
-            "pump_rate_l_min": 1900,
-            "distance_km": 2.67,
-            "formation": "Barail Formation",
-            "event": "normal"
-        },
-
-        {
-            "well_id": "W105",
-            "depth_m": 2630,
-            "rop_m_hr": 15.8,
-            "mud_weight_sg": 1.19,
-            "torque_knm": 16.0,
-            "ecd_sg": 1.25,
-            "pump_rate_l_min": 1900,
-            "distance_km": 2.67,
-            "formation": "Barail Formation",
-            "event": "torque_spike"
-        },
-
-        {
-            "well_id": "W105",
-            "depth_m": 2642,
-            "rop_m_hr": 15.7,
-            "mud_weight_sg": 1.19,
-            "torque_knm": 15.5,
-            "ecd_sg": 1.25,
-            "pump_rate_l_min": 1900,
-            "distance_km": 2.67,
-            "formation": "Barail Formation",
-            "event": "drag"
-        },
-
-        # ==================================================
-        # W106
-        # ==================================================
-
-        {
-            "well_id": "W106",
-            "depth_m": 2500,
-            "rop_m_hr": 17.0,
-            "mud_weight_sg": 1.18,
-            "torque_knm": 11.0,
-            "ecd_sg": 1.22,
-            "pump_rate_l_min": 1880,
-            "distance_km": 6.81,
-            "formation": "Barail Formation",
-            "event": "normal"
-        },
-
-        {
-            "well_id": "W106",
-            "depth_m": 2580,
-            "rop_m_hr": 16.8,
-            "mud_weight_sg": 1.18,
-            "torque_knm": 11.5,
-            "ecd_sg": 1.23,
-            "pump_rate_l_min": 1880,
-            "distance_km": 6.81,
-            "formation": "Barail Formation",
-            "event": "normal"
-        },
-
-        {
-            "well_id": "W106",
-            "depth_m": 2630,
-            "rop_m_hr": 16.7,
-            "mud_weight_sg": 1.18,
-            "torque_knm": 12.0,
-            "ecd_sg": 1.23,
-            "pump_rate_l_min": 1880,
-            "distance_km": 6.81,
-            "formation": "Barail Formation",
-            "event": "normal"
-        },
-
-        {
-            "well_id": "W106",
-            "depth_m": 2650,
-            "rop_m_hr": 16.5,
-            "mud_weight_sg": 1.18,
-            "torque_knm": 12.5,
-            "ecd_sg": 1.23,
-            "pump_rate_l_min": 1880,
-            "distance_km": 6.81,
-            "formation": "Barail Formation",
-            "event": "normal"
-        },
-
-        # ==================================================
-        # ADDITIONAL SYNTHETIC NORMAL CONDITIONS
-        # ==================================================
-
-        {
-            "well_id": "W104",
-            "depth_m": 2200,
-            "rop_m_hr": 18.5,
-            "mud_weight_sg": 1.15,
-            "torque_knm": 9.5,
-            "ecd_sg": 1.20,
-            "pump_rate_l_min": 1800,
-            "distance_km": 0.0,
-            "formation": "Barail Formation",
-            "event": "normal"
-        },
-
-        {
-            "well_id": "W105",
-            "depth_m": 2300,
-            "rop_m_hr": 17.2,
-            "mud_weight_sg": 1.18,
-            "torque_knm": 10.5,
-            "ecd_sg": 1.22,
-            "pump_rate_l_min": 1880,
-            "distance_km": 2.67,
-            "formation": "Barail Formation",
-            "event": "normal"
-        },
-
-        {
-            "well_id": "W106",
-            "depth_m": 2400,
-            "rop_m_hr": 17.4,
-            "mud_weight_sg": 1.17,
-            "torque_knm": 10.8,
-            "ecd_sg": 1.22,
-            "pump_rate_l_min": 1850,
-            "distance_km": 6.81,
-            "formation": "Barail Formation",
-            "event": "normal"
-        },
-
-        {
-            "well_id": "W104",
-            "depth_m": 2520,
-            "rop_m_hr": 16.8,
-            "mud_weight_sg": 1.18,
-            "torque_knm": 12.5,
-            "ecd_sg": 1.24,
-            "pump_rate_l_min": 1860,
-            "distance_km": 0.0,
-            "formation": "Barail Formation",
-            "event": "normal"
-        },
-
-        {
-            "well_id": "W105",
-            "depth_m": 2700,
-            "rop_m_hr": 15.5,
-            "mud_weight_sg": 1.20,
-            "torque_knm": 13.5,
-            "ecd_sg": 1.26,
-            "pump_rate_l_min": 1920,
-            "distance_km": 2.67,
-            "formation": "Barail Formation",
-            "event": "normal"
-        },
-
-        {
-            "well_id": "W106",
-            "depth_m": 2750,
-            "rop_m_hr": 16.2,
-            "mud_weight_sg": 1.19,
-            "torque_knm": 12.8,
-            "ecd_sg": 1.25,
-            "pump_rate_l_min": 1900,
-            "distance_km": 6.81,
-            "formation": "Barail Formation",
-            "event": "normal"
-        }
-    ]
+        records.append({
+            "well_id": well_id,
+            "depth_m": depth_m,
+            "rop_m_hr": rop,
+            "mud_weight_sg": mud_weight,
+            "torque_knm": torque,
+            "ecd_sg": ecd,
+            "pump_rate_l_min": pump_rate,
+            "distance_km": WELL_DISTANCE_KM[well_id],
+            "formation": FORMATION,
+            "event": event
+        })
 
     return records
 
@@ -300,11 +98,7 @@ def create_training_data():
 
 def build_dataframe():
 
-    records = create_training_data()
-
-    dataframe = pd.DataFrame(records)
-
-    return dataframe
+    return pd.DataFrame(create_training_data())
 
 
 # ==========================================================
@@ -333,27 +127,20 @@ def validate_dataset(dataframe):
     ]
 
     if missing_columns:
-
         raise ValueError(
             f"Missing dataset columns: {missing_columns}"
         )
 
-    # Check event labels
     allowed_events = set(EVENT_TYPES) | {"normal"}
 
-    invalid_events = set(
-        dataframe["event"]
-    ) - allowed_events
+    invalid_events = set(dataframe["event"]) - allowed_events
 
     if invalid_events:
-
         raise ValueError(
             f"Invalid event labels: {invalid_events}"
         )
 
-    # Check missing values
     if dataframe.isnull().any().any():
-
         raise ValueError(
             "Dataset contains missing values."
         )
@@ -362,7 +149,7 @@ def validate_dataset(dataframe):
 
 
 # ==========================================================
-# SAVE DATASET
+# SAVE / LOAD
 # ==========================================================
 
 def save_dataset():
@@ -371,69 +158,36 @@ def save_dataset():
 
     validate_dataset(dataframe)
 
-    dataframe.to_csv(
-        DATASET_FILE,
-        index=False
-    )
+    DATASET_FILE.parent.mkdir(parents=True, exist_ok=True)
 
-    print(
-        f"Training dataset saved to: {DATASET_FILE}"
-    )
+    dataframe.to_csv(DATASET_FILE, index=False)
 
-    print(
-        f"Total records: {len(dataframe)}"
-    )
-
-    print(
-        "\nEvent distribution:"
-    )
-
-    print(
-        dataframe["event"].value_counts()
-    )
+    print(f"Dataset saved to: {DATASET_FILE}")
+    print(f"Total records: {len(dataframe)}")
+    print("\nEvent distribution:")
+    print(dataframe["event"].value_counts())
 
     return dataframe
 
-
-# ==========================================================
-# LOAD DATASET
-# ==========================================================
 
 def load_dataset():
 
     if not DATASET_FILE.exists():
 
-        print(
-            "Training dataset not found."
-        )
-
-        print(
-            "Creating training dataset..."
-        )
+        print("Dataset not found. Creating it...")
 
         return save_dataset()
 
-    dataframe = pd.read_csv(
-        DATASET_FILE
-    )
+    dataframe = pd.read_csv(DATASET_FILE)
 
     validate_dataset(dataframe)
 
     return dataframe
 
 
-# ==========================================================
-# MAIN
-# ==========================================================
-
 if __name__ == "__main__":
 
     dataframe = save_dataset()
 
-    print(
-        "\nFirst five records:"
-    )
-
-    print(
-        dataframe.head()
-    )
+    print("\nFirst five records:")
+    print(dataframe.head())

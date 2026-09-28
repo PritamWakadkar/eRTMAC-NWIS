@@ -8,6 +8,7 @@ import Prediction from "./pages/Prediction";
 import EventAnalysis from "./pages/EventAnalysis";
 import Documents from "./pages/Documents";
 import NotFound from "./pages/NotFound";
+import WellMap from "./components/wells/WellMap";
 
 function App() {
     return (
@@ -73,8 +74,10 @@ function App() {
                     path="*"
                     element={<NotFound />}
                 />
-
+                   <Route path="/well-map" element={<WellMap />} />
             </Routes>
+
+   
         </Layout>
     );
 }

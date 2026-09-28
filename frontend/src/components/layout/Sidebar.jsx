@@ -7,6 +7,7 @@ import {
     Search,
     BrainCircuit,
     Activity,
+    MapPinned,
 } from "lucide-react";
 
 function Sidebar() {
@@ -32,6 +33,11 @@ function Sidebar() {
             to: "/prediction",
             label: "Prediction",
             icon: BrainCircuit,
+        },
+        {
+            to: "/well-map",
+            label: "Well Map",
+            icon: MapPinned,
         },
     ];
 

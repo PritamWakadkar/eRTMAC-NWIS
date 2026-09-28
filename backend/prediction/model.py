@@ -1,154 +1,195 @@
-from pathlib import Path
-
 import joblib
-from sklearn.ensemble import RandomForestClassifier
+import numpy as np
+import pandas as pd
 
-from .config import MODEL_FILE, RANDOM_STATE
-from .dataset import load_dataset
-from .features import prepare_features, encode_target
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.impute import SimpleImputer
+from sklearn.metrics import (
+    average_precision_score,
+    brier_score_loss,
+    roc_auc_score,
+)
+from sklearn.model_selection import GroupKFold
+from sklearn.pipeline import Pipeline
+
+from .config import (
+    MODEL_FILE,
+    MAX_CV_SPLITS,
+    MIN_POSITIVES,
+    MIN_PR_LIFT,
+    RANDOM_STATE,
+)
+
+
+def _make_pipeline():
+    return Pipeline([
+        ("impute", SimpleImputer(strategy="median", add_indicator=True)),
+        ("forest", RandomForestClassifier(
+            n_estimators=300,
+            min_samples_leaf=2,
+            class_weight="balanced_subsample",
+            random_state=RANDOM_STATE,
+            n_jobs=-1,
+        )),
+    ])
 
 
 class DrillingEventModel:
+    """One binary classifier per event type (multi-label)."""
 
     def __init__(self):
-        self.model = RandomForestClassifier(
-            n_estimators=100,
-            random_state=RANDOM_STATE,
-            class_weight="balanced",
-        )
+        self.pipelines = {}
+        self.feature_columns = []
+        self.feature_event_types = []
+        self.metrics = {}
+        self.version = None
 
-        self.class_mapping = {}
-        self.reverse_mapping = {}
+    @property
+    def is_ready(self):
+        return bool(self.pipelines)
 
-    def train(self, X, y):
-        """
-        Train the Random Forest model.
-        """
+    # ------------------------------------------------------
+    # TRAIN + EVALUATE (grouped by well, never by row)
+    # ------------------------------------------------------
 
-        encoded_y, class_mapping = encode_target(y)
+    def train(
+        self,
+        frame,
+        event_types,
+        feature_columns,
+        min_positives=MIN_POSITIVES,
+        min_lift=MIN_PR_LIFT,
+    ):
+        # Drop columns that are entirely missing (e.g. parameters that
+        # PDF events do not contain).
+        columns = [c for c in feature_columns if frame[c].notna().any()]
 
-        self.class_mapping = class_mapping
+        X = frame[columns]
+        groups = frame["well_id"]
 
-        self.reverse_mapping = {
-            value: key
-            for key, value in class_mapping.items()
-        }
+        n_wells = groups.nunique()
+        if n_wells < 2:
+            raise ValueError(
+                "Need events from at least 2 wells to validate by well."
+            )
 
-        self.model.fit(X, encoded_y)
+        cv = GroupKFold(n_splits=min(MAX_CV_SPLITS, n_wells))
 
-        return self
+        self.pipelines = {}
+        self.metrics = {}
+        self.feature_columns = columns
+        self.feature_event_types = list(event_types)
 
-    def predict(self, X):
-        """
-        Predict event classes.
-        """
+        for event_type in event_types:
 
-        predictions = self.model.predict(X)
+            y = frame[f"y_{event_type}"].astype(int)
+            positives = int(y.sum())
+            prevalence = float(y.mean())
 
-        return [
-            self.reverse_mapping[int(prediction)]
-            for prediction in predictions
-        ]
+            report = {
+                "rows": int(len(y)),
+                "positives": positives,
+                "prevalence": round(prevalence, 4),
+                "accepted": False,
+            }
 
-    def predict_probabilities(self, X):
-        """
-        Return probability for every event class.
-        """
+            if positives < min_positives:
+                report["reason"] = (
+                    f"only {positives} positives (< {min_positives})"
+                )
+                self.metrics[event_type] = report
+                continue
 
-        probabilities = self.model.predict_proba(X)
+            if positives == len(y):
+                report["reason"] = "all rows positive"
+                self.metrics[event_type] = report
+                continue
 
-        results = []
+            oof = np.zeros(len(y), dtype=float)
 
-        for row in probabilities:
+            for train_idx, test_idx in cv.split(X, y, groups):
 
-            prediction = {}
+                y_train = y.iloc[train_idx]
 
-            for class_id, probability in zip(
-                self.model.classes_,
-                row
-            ):
-                event_name = self.reverse_mapping[int(class_id)]
+                if y_train.nunique() < 2:
+                    oof[test_idx] = float(y_train.mean())
+                    continue
 
-                prediction[event_name] = float(probability)
+                pipeline = _make_pipeline()
+                pipeline.fit(X.iloc[train_idx], y_train)
+                oof[test_idx] = pipeline.predict_proba(
+                    X.iloc[test_idx]
+                )[:, 1]
 
-            results.append(prediction)
+            pr_auc = float(average_precision_score(y, oof))
+            report.update({
+                "pr_auc": round(pr_auc, 4),
+                "baseline_pr_auc": round(prevalence, 4),
+                "roc_auc": round(float(roc_auc_score(y, oof)), 4),
+                "brier": round(float(brier_score_loss(y, oof)), 4),
+            })
+
+            if pr_auc < prevalence * min_lift:
+                report["reason"] = "does not beat the prevalence baseline"
+                self.metrics[event_type] = report
+                continue
+
+            final = _make_pipeline()
+            final.fit(X, y)
+
+            self.pipelines[event_type] = final
+            report["accepted"] = True
+            self.metrics[event_type] = report
+
+        self.version = pd.Timestamp.utcnow().strftime("%Y%m%d%H%M%S")
+
+        return self.metrics
+
+    # ------------------------------------------------------
+    # PREDICT
+    # ------------------------------------------------------
+
+    def predict_probabilities(self, data):
+        """Returns [{event: probability}, ...], one dict per input row."""
+
+        X = data.reindex(columns=self.feature_columns)
+
+        results = [dict() for _ in range(len(X))]
+
+        for event_type, pipeline in self.pipelines.items():
+            probabilities = pipeline.predict_proba(X)[:, 1]
+            for i, value in enumerate(probabilities):
+                results[i][event_type] = float(value)
 
         return results
 
-    def save(self):
-        """
-        Save trained model to disk.
-        """
+    # ------------------------------------------------------
+    # SAVE / LOAD
+    # ------------------------------------------------------
 
-        MODEL_FILE.parent.mkdir(
-            parents=True,
-            exist_ok=True
-        )
+    def save(self, path=MODEL_FILE):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        joblib.dump({
+            "pipelines": self.pipelines,
+            "feature_columns": self.feature_columns,
+            "feature_event_types": self.feature_event_types,
+            "metrics": self.metrics,
+            "version": self.version,
+        }, path)
 
-        model_data = {
-            "model": self.model,
-            "class_mapping": self.class_mapping,
-            "reverse_mapping": self.reverse_mapping
-        }
+    def load(self, path=MODEL_FILE):
+        """Returns True if a trained model was loaded."""
+        if not path.exists():
+            return False
+        try:
+            payload = joblib.load(path)
+        except Exception as e:
+            print("Could not load model:", e)
+            return False
 
-        joblib.dump(
-            model_data,
-            MODEL_FILE
-        )
-
-        print(
-            f"Model saved to: {MODEL_FILE}"
-        )
-
-    def load(self):
-        """
-        Load trained model from disk.
-        """
-
-        if not MODEL_FILE.exists():
-            raise FileNotFoundError(
-                "Trained model not found. "
-                "Run training first."
-            )
-
-        model_data = joblib.load(MODEL_FILE)
-
-        self.model = model_data["model"]
-        self.class_mapping = model_data["class_mapping"]
-        self.reverse_mapping = model_data["reverse_mapping"]
-
-        print(
-            f"Model loaded from: {MODEL_FILE}"
-        )
-
-        return self
-
-
-if __name__ == "__main__":
-
-    print("Loading training dataset...")
-
-    dataframe = load_dataset()
-
-    print(
-        f"Dataset contains "
-        f"{len(dataframe)} records."
-    )
-
-    X, y = prepare_features(dataframe)
-
-    print("\nTraining Random Forest model...")
-
-    model = DrillingEventModel()
-
-    model.train(X, y)
-
-    print("\nModel training completed.")
-
-    print("\nClass mapping:")
-
-    print(model.class_mapping)
-
-    model.save()
-
-    print("\nModel is ready.")
+        self.pipelines = payload.get("pipelines", {})
+        self.feature_columns = payload.get("feature_columns", [])
+        self.feature_event_types = payload.get("feature_event_types", [])
+        self.metrics = payload.get("metrics", {})
+        self.version = payload.get("version")
+        return self.is_ready
