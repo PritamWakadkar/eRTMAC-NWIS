@@ -1,14 +1,14 @@
 import {
-    Search,
-    SlidersHorizontal,
-    MapPin,
-    Ruler,
-    RotateCcw,
-    Sparkles,
-    Database,
-    ArrowUpRight,
-    Zap,
-} from "lucide-react";
+    RiSearchLine,
+    RiEqualizerLine,
+    RiMapPinLine,
+    RiRulerLine,
+    RiRestartLine,
+    RiSparklingLine,
+    RiDatabase2Line,
+    RiArrowRightUpLine,
+    RiFlashlightLine,
+} from "@remixicon/react";
 
 function SearchPanel({
     question,
@@ -40,29 +40,29 @@ function SearchPanel({
         {
             label: "Mud Loss",
             question: "Which wells had mud-loss events?",
-            icon: Database,
+            icon: RiDatabase2Line,
         },
         {
             label: "Torque",
             question: "Which wells had torque-related events?",
-            icon: Zap,
+            icon: RiFlashlightLine,
         },
         {
             label: "Depth",
             question:
                 "What happened between 2380 m and 2470 m in W104?",
-            icon: Ruler,
+            icon: RiRulerLine,
         },
         {
             label: "Formation",
             question:
                 "Which formation was used in W104?",
-            icon: MapPin,
+            icon: RiMapPinLine,
         },
         {
             label: "Well Info",
             question: "Tell me about W104",
-            icon: Search,
+            icon: RiSearchLine,
         },
     ];
 
@@ -91,7 +91,7 @@ function SearchPanel({
 
                         <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/10 shadow-lg ring-1 ring-white/10 backdrop-blur">
 
-                            <Search className="h-6 w-6 text-white" />
+                            <RiSearchLine className="h-6 w-6 text-white" />
 
                             <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-[#172554] bg-emerald-400">
                                 <span className="h-1.5 w-1.5 rounded-full bg-white" />
@@ -103,17 +103,7 @@ function SearchPanel({
 
                         <div>
 
-                            <div className="flex flex-wrap items-center gap-2">
-
-                                <span className="rounded-full border border-blue-300/20 bg-blue-400/10 px-3 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-blue-200">
-                                    NLP + RAG
-                                </span>
-
-                                <span className="rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-emerald-300">
-                                    Intelligence Search
-                                </span>
-
-                            </div>
+                         
 
                             <h2 className="mt-3 text-xl font-black tracking-tight text-white sm:text-2xl">
                                 Well Intelligence Search
@@ -134,17 +124,17 @@ function SearchPanel({
                     <div className="hidden shrink-0 items-center gap-2 lg:flex">
 
                         <TechBadge
-                            icon={Sparkles}
+                            icon={RiSparklingLine}
                             label="NLP"
                         />
 
                         <TechBadge
-                            icon={Database}
+                            icon={RiDatabase2Line}
                             label="FAISS"
                         />
 
                         <TechBadge
-                            icon={Zap}
+                            icon={RiFlashlightLine}
                             label="RAG"
                         />
 
@@ -177,7 +167,7 @@ function SearchPanel({
                         >
 
                             <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-50">
-                                <Search className="h-3.5 w-3.5 text-blue-600" />
+                                <RiSearchLine className="h-3.5 w-3.5 text-blue-600" />
                             </span>
 
                             Your Question
@@ -221,7 +211,7 @@ function SearchPanel({
 
                         <div className="pointer-events-none absolute bottom-4 right-4 flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-[9px] font-black uppercase tracking-wider text-slate-400 shadow-sm ring-1 ring-slate-100">
 
-                            <Sparkles className="h-3 w-3 text-blue-500" />
+                            <RiSparklingLine className="h-3 w-3 text-blue-500" />
 
                             AI Query
 
@@ -256,7 +246,7 @@ function SearchPanel({
                         <div className="flex items-center gap-2">
 
                             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50">
-                                <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+                                <RiSparklingLine className="h-3.5 w-3.5 text-indigo-600" />
                             </div>
 
                             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
@@ -330,7 +320,7 @@ function SearchPanel({
                         <div className="flex items-center gap-2">
 
                             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100">
-                                <SlidersHorizontal className="h-4 w-4 text-slate-600" />
+                                <RiEqualizerLine className="h-4 w-4 text-slate-600" />
                             </div>
 
                             <div>
@@ -360,7 +350,7 @@ function SearchPanel({
                         {/* ================================================= */}
 
                         <ParameterCard
-                            icon={MapPin}
+                            icon={RiMapPinLine}
                             iconClass="bg-indigo-50 text-indigo-600"
                             title="Search Radius"
                             value={`${radiusKm} km`}
@@ -400,7 +390,7 @@ function SearchPanel({
                         {/* ================================================= */}
 
                         <ParameterCard
-                            icon={Ruler}
+                            icon={RiRulerLine}
                             iconClass="bg-cyan-50 text-cyan-600"
                             title="Depth Tolerance"
                             value={`±${depthTolerance} m`}
@@ -452,7 +442,7 @@ function SearchPanel({
                         className="group inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-xs font-black text-slate-600 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
                     >
 
-                        <RotateCcw className="h-4 w-4 transition-transform duration-500 group-hover:rotate-[-90deg]" />
+                        <RiRestartLine className="h-4 w-4 transition-transform duration-500 group-hover:rotate-[-90deg]" />
 
                         Reset
 
@@ -479,11 +469,11 @@ function SearchPanel({
                                 </>
                             ) : (
                                 <>
-                                    <Search className="h-4 w-4" />
+                                    <RiSearchLine className="h-4 w-4" />
 
                                     Analyze Well Data
 
-                                    <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                                    <RiArrowRightUpLine className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                                 </>
                             )}
 

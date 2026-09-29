@@ -4,18 +4,18 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import WellMap from "../components/wells/WellMap";
 import {
-    Activity,
-    ArrowRight,
-    BrainCircuit,
-    CheckCircle2,
-    Database,
-    Gauge,
-    MapPin,
-    Radar,
-    Search,
-    Sparkles,
-    Zap,
-} from "lucide-react";
+    RiPulseLine as Activity,
+    RiArrowRightLine as ArrowRight,
+    RiBrainLine as BrainCircuit,
+    RiCheckboxCircleLine as CheckCircle2,
+    RiDatabase2Line as Database,
+    RiDashboard3Line as Gauge,
+    RiMapPinLine as MapPin,
+    RiRadarLine as Radar,
+    RiSearchLine as Search,
+    RiSparklingLine as Sparkles,
+    RiFlashlightLine as Zap,
+} from "@remixicon/react";
  
 import SearchPanel from "../components/analysis/SearchPanel";
 import AnalysisResults from "../components/analysis/AnalysisResults";
@@ -247,103 +247,6 @@ function Analysis() {
             <main className="relative">
                 <div className="mx-auto max-w-[1450px] px-6 py-8 max-sm:px-4">
  
-                    {/* HERO */}
- 
-                    <section className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#071426] via-[#102b59] to-[#312e81] p-7 shadow-[0_25px_70px_rgba(30,64,175,0.20)] sm:p-10">
- 
-                        <div
-                            className="pointer-events-none absolute inset-0 opacity-[0.04]"
-                            style={{
-                                backgroundImage:
-                                    "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
-                                backgroundSize: "40px 40px",
-                            }}
-                        />
- 
-                        <div className="pointer-events-none absolute -right-32 -top-32 h-[420px] w-[420px] rounded-full bg-blue-400/20 blur-3xl" />
-                        <div className="pointer-events-none absolute bottom-[-180px] left-1/3 h-[400px] w-[400px] rounded-full bg-violet-400/10 blur-3xl" />
- 
-                        <div className="relative grid gap-10 lg:grid-cols-[1fr_320px] lg:items-center">
- 
-                            {/* HERO LEFT */}
- 
-                            <div>
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <span className="inline-flex items-center gap-2 rounded-full border border-blue-200/20 bg-white/10 px-3.5 py-1.5 backdrop-blur">
-                                        <Sparkles className="h-3.5 w-3.5 text-cyan-300" />
-                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-100">
-                                            AI Drilling Intelligence
-                                        </span>
-                                    </span>
- 
-                                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-1.5">
-                                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-                                        <span className="text-[9px] font-black uppercase tracking-wider text-emerald-300">
-                                            Engine Online
-                                        </span>
-                                    </span>
-                                </div>
- 
-                                <h1 className="mt-5 text-4xl font-black tracking-tight text-white sm:text-5xl">
-                                    Well{" "}
-                                    <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-300 bg-clip-text text-transparent">
-                                        Analysis
-                                    </span>
-                                </h1>
- 
-                                <p className="mt-4 max-w-2xl text-sm leading-7 text-blue-100/70 sm:text-base">
-                                    Ask natural-language questions about
-                                    drilling events, nearby wells, formations,
-                                    historical observations and depth-specific
-                                    intelligence.
-                                </p>
- 
-                                <div className="mt-6 flex flex-wrap gap-2">
-                                    <TechBadge icon={BrainCircuit} label="NLP" />
-                                    <TechBadge icon={Database} label="RAG" />
-                                    <TechBadge icon={MapPin} label="Spatial Intelligence" />
-                                    <TechBadge icon={Activity} label="Drilling Analytics" />
-                                </div>
-                            </div>
- 
- 
-                            {/* HERO RIGHT */}
- 
-                            <div className="relative hidden lg:block">
-                                <div className="relative mx-auto h-[250px] w-[250px]">
-                                    <div className="absolute inset-0 rounded-full border border-blue-300/10" />
-                                    <div className="absolute inset-8 rounded-full border border-cyan-300/10" />
-                                    <div className="absolute inset-16 rounded-full border border-violet-300/10" />
-                                    <div className="absolute inset-16 rounded-full bg-blue-500/20 blur-2xl" />
- 
-                                    <div className="absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[28px] border border-white/10 bg-white/10 shadow-2xl backdrop-blur-xl">
-                                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 shadow-lg shadow-blue-500/40">
-                                            <Search className="h-8 w-8 text-white" />
-                                        </div>
-                                    </div>
- 
-                                    <HeroNode
-                                        className="left-1/2 top-0 -translate-x-1/2"
-                                        icon={BrainCircuit}
-                                    />
-                                    <HeroNode
-                                        className="right-0 top-1/2 -translate-y-1/2"
-                                        icon={Database}
-                                    />
-                                    <HeroNode
-                                        className="bottom-0 left-1/2 -translate-x-1/2"
-                                        icon={MapPin}
-                                    />
-                                    <HeroNode
-                                        className="left-0 top-1/2 -translate-y-1/2"
-                                        icon={Zap}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </section>
- 
- 
                     {/* SEARCH SECTION */}
  
                     <section className="mt-8">
@@ -361,15 +264,9 @@ function Analysis() {
                                     Enter a natural-language drilling question.
                                 </p>
                             </div>
- 
-                            <div className="hidden items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 sm:flex">
-                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                                <span className="text-[9px] font-black uppercase tracking-wider text-emerald-600">
-                                    NLP + RAG Ready
-                                </span>
-                            </div>
+
                         </div>
- 
+
                         <div className="relative">
                             <div className="absolute -inset-1 rounded-[30px] bg-gradient-to-r from-blue-300/20 via-indigo-300/20 to-violet-300/20 blur-xl" />
  
@@ -699,37 +596,6 @@ function Analysis() {
                     </section>
  
  
-                    {/* FOOTER STATUS */}
- 
-                    <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50 to-cyan-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-sm">
-                                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                            </div>
- 
-                            <div>
-                                <p className="text-[9px] font-black uppercase tracking-[0.16em] text-emerald-600">
-                                    Intelligence Engine
-                                </p>
- 
-                                <p className="mt-0.5 text-xs font-semibold text-emerald-800">
-                                    NLP, RAG and evidence retrieval services are ready.
-                                </p>
-                            </div>
-                        </div>
- 
-                        <div className="flex flex-wrap gap-2">
-                            <span className="rounded-full bg-white px-3 py-1.5 text-[9px] font-black text-blue-600 shadow-sm">
-                                PostgreSQL
-                            </span>
-                            <span className="rounded-full bg-white px-3 py-1.5 text-[9px] font-black text-violet-600 shadow-sm">
-                                FAISS
-                            </span>
-                            <span className="rounded-full bg-white px-3 py-1.5 text-[9px] font-black text-emerald-600 shadow-sm">
-                                RAG
-                            </span>
-                        </div>
-                    </div>
                 </div>
             </main>
  

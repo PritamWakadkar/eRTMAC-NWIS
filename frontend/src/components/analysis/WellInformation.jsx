@@ -1,11 +1,11 @@
 import {
-    MapPin,
-    Database,
-    Ruler,
-    Activity,
-    Layers3,
-    CalendarDays,
-} from "lucide-react";
+    RiMapPinLine as MapPin,
+    RiDatabase2Line as Database,
+    RiRulerLine as Ruler,
+    RiPulseLine as Activity,
+    RiStackLine as Layers3,
+    RiCalendarLine as CalendarDays,
+} from "@remixicon/react";
 
 function WellInformation({ well = null }) {
     if (!well) {

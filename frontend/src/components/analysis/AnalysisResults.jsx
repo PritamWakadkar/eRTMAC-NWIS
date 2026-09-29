@@ -1,16 +1,16 @@
 import {
-    Activity,
-    CheckCircle2,
-    Database,
-    FileSearch,
-    Gauge,
-    Info,
-    MapPin,
-    Search,
-    Sparkles,
-    Target,
-    Zap,
-} from "lucide-react";
+    RiPulseLine as Activity,
+    RiCheckboxCircleLine as CheckCircle2,
+    RiDatabase2Line as Database,
+    RiFileSearchLine as FileSearch,
+    RiDashboard3Line as Gauge,
+    RiInformationLine as Info,
+    RiMapPinLine as MapPin,
+    RiSearchLine as Search,
+    RiSparklingLine as Sparkles,
+    RiTargetLine as Target,
+    RiFlashlightLine as Zap,
+} from "@remixicon/react";
 
 
 // ============================================================

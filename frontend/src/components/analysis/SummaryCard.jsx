@@ -1,10 +1,10 @@
 import {
-    Activity,
-    AlertTriangle,
-    CheckCircle2,
-    FileSearch,
-    Info,
-} from "lucide-react";
+    RiPulseLine as Activity,
+    RiAlertLine as AlertTriangle,
+    RiCheckboxCircleLine as CheckCircle2,
+    RiFileSearchLine as FileSearch,
+    RiInformationLine as Info,
+} from "@remixicon/react";
 
 function SummaryCard({
     title = "Analysis Summary",

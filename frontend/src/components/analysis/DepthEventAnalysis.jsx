@@ -1,9 +1,9 @@
 import {
-    AlertTriangle,
-    CheckCircle2,
-    Clock3,
-    Activity,
-} from "lucide-react";
+    RiAlertLine as AlertTriangle,
+    RiCheckboxCircleLine as CheckCircle2,
+    RiTimeLine as Clock3,
+    RiPulseLine as Activity,
+} from "@remixicon/react";
 
 function DepthEventAnalysis({ events = [], depth = null }) {
     if (!events || events.length === 0) {

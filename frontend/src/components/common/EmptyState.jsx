@@ -1,7 +1,7 @@
 import {
-    Inbox,
-    Search,
-} from "lucide-react";
+    RiInboxLine,
+    RiSearchLine,
+} from "@remixicon/react";
 
 function EmptyState({
     title = "No Data Available",
@@ -15,7 +15,7 @@ function EmptyState({
             {/* Icon */}
 
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
-                <Inbox className="h-7 w-7 text-slate-400" />
+                <RiInboxLine className="h-7 w-7 text-slate-400" />
             </div>
 
             {/* Content */}
@@ -36,7 +36,7 @@ function EmptyState({
                     onClick={onAction}
                     className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#172033] px-5 py-2.5 text-xs font-extrabold text-white transition hover:bg-slate-800"
                 >
-                    <Search className="h-4 w-4" />
+                    <RiSearchLine className="h-4 w-4" />
                     {actionLabel}
                 </button>
             )}

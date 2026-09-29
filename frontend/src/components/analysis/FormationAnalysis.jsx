@@ -1,9 +1,9 @@
 import {
-    Layers3,
-    Mountain,
-    CheckCircle2,
-    AlertTriangle,
-} from "lucide-react";
+    RiStackLine,
+    RiLandscapeLine,
+    RiCheckboxCircleLine,
+    RiAlertLine,
+} from "@remixicon/react";
 
 function FormationAnalysis({ formation = null }) {
 
@@ -21,7 +21,7 @@ function FormationAnalysis({ formation = null }) {
                 <div className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
 
                     <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-                        <Layers3 className="h-6 w-6 text-slate-400" />
+                        <RiStackLine className="h-6 w-6 text-slate-400" />
                     </div>
 
                     <h3 className="mt-4 text-sm font-extrabold text-slate-800">
@@ -99,7 +99,7 @@ function FormationAnalysis({ formation = null }) {
                     <div className="flex items-start gap-4">
 
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50">
-                            <Mountain className="h-6 w-6 text-emerald-600" />
+                            <RiLandscapeLine className="h-6 w-6 text-emerald-600" />
                         </div>
 
                         <div>
@@ -125,7 +125,7 @@ function FormationAnalysis({ formation = null }) {
 
                     <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2">
 
-                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                        <RiCheckboxCircleLine className="h-4 w-4 text-emerald-600" />
 
                         <span className="text-xs font-bold text-emerald-700">
                             Formation Identified
@@ -170,7 +170,7 @@ function FormationAnalysis({ formation = null }) {
 
                         <div className="mb-3 flex items-center gap-2">
 
-                            <AlertTriangle className="h-4 w-4 text-amber-500" />
+                            <RiAlertLine className="h-4 w-4 text-amber-500" />
 
                             <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
                                 Events Associated With Formation
@@ -244,7 +244,7 @@ function SectionHeader() {
         <div className="flex items-start gap-3">
 
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#172033]">
-                <Layers3 className="h-5 w-5 text-white" />
+                <RiStackLine className="h-5 w-5 text-white" />
             </div>
 
             <div>

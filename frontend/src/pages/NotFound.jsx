@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
 import {
-    AlertCircle,
-    ArrowLeft,
-    Home,
-} from "lucide-react";
+    RiErrorWarningLine,
+    RiArrowLeftLine,
+    RiHome4Line,
+} from "@remixicon/react";
 
 
 function NotFound() {
@@ -19,7 +19,7 @@ function NotFound() {
                     {/* Icon */}
 
                     <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
-                        <AlertCircle className="h-8 w-8 text-slate-400" />
+                        <RiErrorWarningLine className="h-8 w-8 text-slate-400" />
                     </div>
 
 
@@ -53,7 +53,7 @@ function NotFound() {
                             to="/"
                             className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#172033] px-5 py-3 text-xs font-extrabold text-white transition hover:bg-slate-800"
                         >
-                            <Home className="h-4 w-4" />
+                            <RiHome4Line className="h-4 w-4" />
                             Dashboard
                         </Link>
 
@@ -62,7 +62,7 @@ function NotFound() {
                             onClick={() => window.history.back()}
                             className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-3 text-xs font-bold text-slate-600 transition hover:bg-slate-50"
                         >
-                            <ArrowLeft className="h-4 w-4" />
+                            <RiArrowLeftLine className="h-4 w-4" />
                             Go Back
                         </button>
 

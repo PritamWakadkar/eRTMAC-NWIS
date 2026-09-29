@@ -1,4 +1,4 @@
-import { LoaderCircle } from "lucide-react";
+import { RiLoader4Line } from "@remixicon/react";
 
 function Loading({
     message = "Analyzing well data...",
@@ -12,7 +12,7 @@ function Loading({
 
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50">
 
-                    <LoaderCircle className="h-7 w-7 animate-spin text-blue-600" />
+                    <RiLoader4Line className="h-7 w-7 animate-spin text-blue-600" />
 
                 </div>
 

@@ -1,9 +1,9 @@
 import {
-    MapPin,
-    Ruler,
-    Activity,
-    ArrowRight,
-} from "lucide-react";
+    RiMapPinLine as MapPin,
+    RiRulerLine as Ruler,
+    RiPulseLine as Activity,
+    RiArrowRightLine as ArrowRight,
+} from "@remixicon/react";
 
 function WellCard({
     well,

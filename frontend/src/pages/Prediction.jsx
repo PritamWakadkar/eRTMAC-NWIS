@@ -1,17 +1,17 @@
 import { useState } from "react";
 import {
-    BrainCircuit,
-    Info,
-    Database,
-    Gauge,
-    Activity,
-    CheckCircle2,
-    Sparkles,
-    Target,
-    Zap,
-    TrendingUp,
-    AlertTriangle,
-} from "lucide-react";
+    RiBrainLine as BrainCircuit,
+    RiInformationLine as Info,
+    RiDatabase2Line as Database,
+    RiDashboard3Line as Gauge,
+    RiPulseLine as Activity,
+    RiCheckboxCircleLine as CheckCircle2,
+    RiSparklingLine as Sparkles,
+    RiTargetLine as Target,
+    RiFlashlightLine as Zap,
+    RiLineChartLine as TrendingUp,
+    RiAlertLine as AlertTriangle,
+} from "@remixicon/react";
 import { toast } from "react-toastify";
 
 import PredictionPanel from "../components/prediction/PredictionPanel";
@@ -218,121 +218,6 @@ function Prediction() {
                 {/* =================================================
                     PAGE HEADER
                 ================================================= */}
-
-                <section className="relative mb-8 overflow-hidden rounded-3xl border border-indigo-100 bg-gradient-to-r from-white via-blue-50/70 to-purple-50/70 p-6 shadow-[0_15px_45px_rgba(37,99,235,0.08)]">
-
-                    {/* Decorative background */}
-
-                    <div className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full bg-blue-300/20 blur-3xl" />
-
-                    <div className="pointer-events-none absolute -bottom-24 right-48 h-52 w-52 rounded-full bg-purple-300/20 blur-3xl" />
-
-                    <div className="pointer-events-none absolute -left-20 bottom-0 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl" />
-
-
-                    <div className="relative flex items-start gap-5">
-
-
-                        {/* ICON */}
-
-                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#172033] via-blue-700 to-indigo-700 shadow-xl shadow-blue-200">
-
-                            <BrainCircuit className="h-8 w-8 text-white" />
-
-                        </div>
-
-
-                        <div className="min-w-0 flex-1">
-
-
-                            {/* LABEL */}
-
-                            <div className="flex flex-wrap items-center gap-2">
-
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">
-
-                                    AI Decision Support
-
-                                </p>
-
-
-                                <span className="flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-[8px] font-black uppercase tracking-wide text-emerald-600">
-
-                                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-
-                                    AI Ready
-
-                                </span>
-
-                            </div>
-
-
-                            {/* TITLE */}
-
-                            <h1 className="mt-1 bg-gradient-to-r from-[#172033] via-blue-700 to-indigo-700 bg-clip-text text-3xl font-black tracking-tight text-transparent max-sm:text-2xl">
-
-                                Drilling Event Prediction
-
-                            </h1>
-
-
-                            {/* DESCRIPTION */}
-
-                            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-
-                                Estimate the probability of drilling events
-                                using historical drilling parameters associated
-                                with the selected well and depth.
-
-                            </p>
-
-
-                            {/* TECHNOLOGY BADGES */}
-
-                            <div className="mt-4 flex flex-wrap gap-2">
-
-                                <span className="flex items-center gap-1.5 rounded-full border border-blue-100 bg-white px-3 py-1.5 text-[9px] font-bold text-blue-600 shadow-sm">
-
-                                    <BrainCircuit className="h-3 w-3" />
-
-                                    Machine Learning
-
-                                </span>
-
-
-                                <span className="flex items-center gap-1.5 rounded-full border border-indigo-100 bg-white px-3 py-1.5 text-[9px] font-bold text-indigo-600 shadow-sm">
-
-                                    <Database className="h-3 w-3" />
-
-                                    Historical Data
-
-                                </span>
-
-
-                                <span className="flex items-center gap-1.5 rounded-full border border-purple-100 bg-white px-3 py-1.5 text-[9px] font-bold text-purple-600 shadow-sm">
-
-                                    <Sparkles className="h-3 w-3" />
-
-                                    AI Prediction
-
-                                </span>
-
-
-                                <span className="flex items-center gap-1.5 rounded-full border border-cyan-100 bg-white px-3 py-1.5 text-[9px] font-bold text-cyan-600 shadow-sm">
-
-                                    <Activity className="h-3 w-3" />
-
-                                    Drilling Analytics
-
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </section>
 
 
                 {/* =================================================
@@ -597,11 +482,7 @@ function Prediction() {
 
                                             </h3>
 
-                                            <span className="rounded-full bg-indigo-50 px-3 py-1 text-[8px] font-black uppercase tracking-wide text-indigo-600">
-
-                                                ML Pipeline
-
-                                            </span>
+                                       
 
                                         </div>
 

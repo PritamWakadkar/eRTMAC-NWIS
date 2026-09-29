@@ -1,10 +1,10 @@
 import {
-    AlertTriangle,
-    CheckCircle2,
-    FileText,
-    Activity,
-    MapPin,
-} from "lucide-react";
+    RiAlertLine as AlertTriangle,
+    RiCheckboxCircleLine as CheckCircle2,
+    RiFileTextLine as FileText,
+    RiPulseLine as Activity,
+    RiMapPinLine as MapPin,
+} from "@remixicon/react";
 
 
 // ============================================================

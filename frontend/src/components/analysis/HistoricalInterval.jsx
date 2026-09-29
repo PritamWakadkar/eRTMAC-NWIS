@@ -1,10 +1,10 @@
 import {
-    History,
-    CalendarDays,
-    ArrowDown,
-    ArrowUp,
-    FileText,
-} from "lucide-react";
+    RiHistoryLine as History,
+    RiCalendarLine as CalendarDays,
+    RiArrowDownLine as ArrowDown,
+    RiArrowUpLine as ArrowUp,
+    RiFileTextLine as FileText,
+} from "@remixicon/react";
 
 function HistoricalInterval({ intervals = [] }) {
     if (!intervals || intervals.length === 0) {

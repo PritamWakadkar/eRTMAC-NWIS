@@ -1,21 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 
 import {
-    FileText,
-    Upload,
-    RefreshCw,
-    Play,
-    CheckCircle2,
-    Clock3,
-    AlertCircle,
-    Loader2,
-    Database,
-    Layers3,
-    BrainCircuit,
-    FileStack,
-    Trash2,
-    X,
-} from "lucide-react";
+    RiFileTextLine as FileText,
+    RiUpload2Line as Upload,
+    RiRefreshLine as RefreshCw,
+    RiPlayFill as Play,
+    RiCheckboxCircleLine as CheckCircle2,
+    RiTimeLine as Clock3,
+    RiErrorWarningLine as AlertCircle,
+    RiLoader4Line as Loader2,
+    RiDatabase2Line as Database,
+    RiStackLine as Layers3,
+    RiBrainLine as BrainCircuit,
+    RiStackLine as FileStack,
+    RiDeleteBinLine as Trash2,
+    RiCloseLine as X,
+} from "@remixicon/react";
 
 import {
     getDocuments,

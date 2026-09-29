@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
-    Menu,
-    X,
-    LayoutDashboard,
-    Search,
-    BrainCircuit,
-    Activity,
-    MapPinned,
-} from "lucide-react";
+    RiMenuLine,
+    RiCloseLine,
+    RiDashboardLine,
+    RiSearchLine,
+    RiBrainLine,
+    RiPulseLine,
+    RiMapPinRangeLine,
+} from "@remixicon/react";
 
 function Sidebar() {
     const [open, setOpen] = useState(false);
@@ -17,27 +17,27 @@ function Sidebar() {
         {
             to: "/",
             label: "Dashboard",
-            icon: LayoutDashboard,
+            icon: RiDashboardLine,
         },
         {
             to: "/analysis",
             label: "Well Analysis",
-            icon: Search,
+            icon: RiSearchLine,
         },
         {
             to: "/event-analysis",
             label: "Event Analysis",
-            icon: Activity,
+            icon: RiPulseLine,
         },
         {
             to: "/prediction",
             label: "Prediction",
-            icon: BrainCircuit,
+            icon: RiBrainLine,
         },
         {
             to: "/well-map",
             label: "Well Map",
-            icon: MapPinned,
+            icon: RiMapPinRangeLine,
         },
     ];
 
@@ -58,7 +58,7 @@ function Sidebar() {
                 className="fixed bottom-5 left-5 z-[90] flex h-12 w-12 items-center justify-center rounded-full bg-[#172033] text-white shadow-lg md:hidden"
                 aria-label="Open navigation"
             >
-                <Menu className="h-5 w-5" />
+                <RiMenuLine className="h-5 w-5" />
             </button>
 
 
@@ -102,9 +102,7 @@ function Sidebar() {
 
                     <nav className="flex-1 p-4">
 
-                        <p className="mb-3 px-3 text-[9px] font-extrabold uppercase tracking-[0.15em] text-slate-400">
-                            Navigation
-                        </p>
+                       
 
                         <div className="space-y-1">
 
@@ -218,7 +216,7 @@ function Sidebar() {
                             className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
                             aria-label="Close navigation"
                         >
-                            <X className="h-5 w-5" />
+                            <RiCloseLine className="h-5 w-5" />
                         </button>
 
                     </div>

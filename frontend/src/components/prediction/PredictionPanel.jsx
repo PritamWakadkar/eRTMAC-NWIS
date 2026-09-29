@@ -1,11 +1,11 @@
 import { useState } from "react";
 import {
-    BrainCircuit,
-    Ruler,
-    Search,
-    RotateCcw,
-    MapPin,
-} from "lucide-react";
+    RiBrainLine,
+    RiRulerLine,
+    RiSearchLine,
+    RiRestartLine,
+    RiMapPinLine,
+} from "@remixicon/react";
 
 
 // Manual parameter fields (label, key, unit, example)
@@ -113,7 +113,7 @@ function PredictionPanel({
             <div className="flex items-start gap-3">
 
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#172033]">
-                    <BrainCircuit className="h-5 w-5 text-white" />
+                    <RiBrainLine className="h-5 w-5 text-white" />
                 </div>
 
                 <div>
@@ -157,7 +157,7 @@ function PredictionPanel({
 
                         <div className="relative">
 
-                            <MapPin
+                            <RiMapPinLine
                                 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
                             />
 
@@ -201,7 +201,7 @@ function PredictionPanel({
 
                         <div className="relative">
 
-                            <Ruler
+                            <RiRulerLine
                                 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
                             />
 
@@ -397,7 +397,7 @@ function PredictionPanel({
 
                     <div className="flex items-start gap-3">
 
-                        <BrainCircuit className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
+                        <RiBrainLine className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
 
                         <div>
 
@@ -419,38 +419,7 @@ function PredictionPanel({
                 </div>
 
 
-                {/* =====================================================
-                    PROTOTYPE NOTICE
-                ====================================================== */}
-
-                <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50 p-4">
-
-                    <div className="flex items-start gap-3">
-
-                        <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[10px] font-black text-amber-700">
-                            !
-                        </div>
-
-                        <div>
-
-                            <p className="text-xs font-extrabold text-amber-800">
-                                Prototype Prediction
-                            </p>
-
-                            <p className="mt-1 text-[11px] leading-5 text-amber-700">
-                                Current predictions are generated
-                                from the project's prototype
-                                training dataset and should be
-                                treated as demonstration outputs,
-                                not calibrated field-risk
-                                probabilities.
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                </div>
+              
 
 
                 {/* =====================================================
@@ -468,7 +437,7 @@ function PredictionPanel({
                         className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-3 text-xs font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
 
-                        <RotateCcw className="h-4 w-4" />
+                        <RiRestartLine className="h-4 w-4" />
 
                         Reset
 
@@ -491,7 +460,7 @@ function PredictionPanel({
                             </>
                         ) : (
                             <>
-                                <Search className="h-4 w-4" />
+                                <RiSearchLine className="h-4 w-4" />
 
                                 Generate Prediction
                             </>

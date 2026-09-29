@@ -1,8 +1,8 @@
 import {
-    AlertTriangle,
-    CheckCircle2,
-    Info,
-} from "lucide-react";
+    RiAlertLine as AlertTriangle,
+    RiCheckboxCircleLine as CheckCircle2,
+    RiInformationLine as Info,
+} from "@remixicon/react";
 
 
 // ============================================================

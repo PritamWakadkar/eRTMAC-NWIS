@@ -1,7 +1,7 @@
 import {
-    MapPin,
-    SearchX,
-} from "lucide-react";
+    RiMapPinLine,
+    RiSearchEyeLine,
+} from "@remixicon/react";
 
 import WellCard from "./WellCard";
 
@@ -19,7 +19,7 @@ function NearbyWellResults({
                 <div className="flex items-start gap-3">
 
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#172033]">
-                        <MapPin className="h-5 w-5 text-white" />
+                        <RiMapPinLine className="h-5 w-5 text-white" />
                     </div>
 
                     <div>
@@ -58,7 +58,7 @@ function NearbyWellResults({
                 <div className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
 
                     <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-                        <SearchX className="h-6 w-6 text-slate-400" />
+                        <RiSearchEyeLine className="h-6 w-6 text-slate-400" />
                     </div>
 
                     <h3 className="mt-4 text-sm font-extrabold text-slate-800">

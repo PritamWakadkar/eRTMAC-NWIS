@@ -1,11 +1,11 @@
 import {
-    Activity,
-    CheckCircle2,
-    CircleAlert,
-    Gauge,
-    TrendingUp,
-    Zap,
-} from "lucide-react";
+    RiPulseLine,
+    RiCheckboxCircleLine,
+    RiErrorWarningLine,
+    RiDashboard3Line,
+    RiLineChartLine,
+    RiFlashlightLine,
+} from "@remixicon/react";
 
 
 // ============================================================
@@ -36,7 +36,7 @@ function getEventConfig(event) {
 
     if (normalized === "normal") {
         return {
-            icon: CheckCircle2,
+            icon: RiCheckboxCircleLine,
             label: "Normal",
             bg: "bg-emerald-50",
             border: "border-emerald-200",
@@ -52,7 +52,7 @@ function getEventConfig(event) {
         normalized === "lost_circulation"
     ) {
         return {
-            icon: Activity,
+            icon: RiPulseLine,
             label: "Mud Loss",
             bg: "bg-blue-50",
             border: "border-blue-200",
@@ -68,7 +68,7 @@ function getEventConfig(event) {
         normalized === "torque_increase"
     ) {
         return {
-            icon: Zap,
+            icon: RiFlashlightLine,
             label: "Torque Spike",
             bg: "bg-orange-50",
             border: "border-orange-200",
@@ -84,7 +84,7 @@ function getEventConfig(event) {
         normalized === "drag_increase"
     ) {
         return {
-            icon: TrendingUp,
+            icon: RiLineChartLine,
             label: "Drag Increase",
             bg: "bg-rose-50",
             border: "border-rose-200",
@@ -97,7 +97,7 @@ function getEventConfig(event) {
 
     if (normalized === "wiper_trip") {
         return {
-            icon: Gauge,
+            icon: RiDashboard3Line,
             label: "Wiper Trip",
             bg: "bg-violet-50",
             border: "border-violet-200",
@@ -109,7 +109,7 @@ function getEventConfig(event) {
 
 
     return {
-        icon: CircleAlert,
+        icon: RiErrorWarningLine,
         label: formatEventName(event),
         bg: "bg-indigo-50",
         border: "border-indigo-200",

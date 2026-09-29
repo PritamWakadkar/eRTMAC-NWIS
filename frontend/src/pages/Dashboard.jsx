@@ -1,20 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
-    Activity,
-    ArrowRight,
-    BrainCircuit,
-    CheckCircle2,
-    Database,
-    FileText,
-    Loader2,
-    MapPin,
-    RefreshCw,
-    Search,
-    Sparkles,
-    Upload,
-    XCircle,
-} from "lucide-react";
+    RiPulseLine as Activity,
+    RiArrowRightLine as ArrowRight,
+    RiBrainLine as BrainCircuit,
+    RiCheckboxCircleLine as CheckCircle2,
+    RiDatabase2Line as Database,
+    RiFileTextLine as FileText,
+    RiLoader4Line as Loader2,
+    RiMapPinLine as MapPin,
+    RiRefreshLine as RefreshCw,
+    RiSearchLine as Search,
+    RiSparklingLine as Sparkles,
+    RiUpload2Line as Upload,
+    RiCloseCircleLine as XCircle,
+} from "@remixicon/react";
 
 import { Link, useNavigate } from "react-router-dom";
 
@@ -24,6 +24,7 @@ import {
     processDocument,
     uploadDocument,
 } from "../services/api";
+import TechText from "../components/common/TechText";
 
 
 // ============================================================
@@ -569,55 +570,62 @@ function Dashboard() {
                 <div className="mx-auto max-w-[1400px] px-6 py-8 max-sm:px-4">
 
                     {/* ==================================================
-                        HERO
+                        DASHBOARD NAVBAR
                     ================================================== */}
 
-                    <section className="overflow-hidden rounded-3xl bg-[#172033] p-7 shadow-sm sm:p-9">
+                    <nav className="mb-8 rounded-2xl border border-slate-800/80 bg-[#000] px-6 py-5 shadow-lg sm:rounded-3xl sm:px-8">
 
-                        <div className="max-w-4xl">
+                        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
-                            <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-blue-300">
-                                Smart Drilling Intelligence
-                            </p>
+                            {/* Brand & Subtitle */}
+                            <div className="max-w-3xl">
 
-                            <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-                                eRTMAC-NWIS
-                            </h1>
+                                <h1 className="sr-only">eRTMAC-NWIS</h1>
 
-                            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
-                                Nearby Wells Intelligence System
-                                for AI-powered offset-well
-                                knowledge, historical drilling
-                                analysis and decision support.
-                            </p>
+                                <div className="h-10 w-56 sm:h-12 sm:w-72">
+                                    <TechText
+                                        text="eRTMAC-NWIS"
+                                        fontWeight={900}
+                                        fontSize={60}
+                                        color="#ffffff"
+                                        accentColor="#38bdf8"
+                                        reveal="letter"
+                                        dashLength={4}
+                                        dashGap={2}
+                                        specks={15}
+                                    />
+                                </div>
 
-                            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                            </div>
+
+                            {/* Nav Buttons */}
+                            <div className="flex flex-wrap items-center gap-3 shrink-0">
 
                                 <Link
                                     to="/analysis"
-                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-xs font-extrabold text-[#172033] transition hover:bg-slate-100"
+                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5 text-xs font-extrabold text-[#172033] shadow-sm transition hover:bg-slate-100"
                                 >
                                     <Search className="h-4 w-4" />
 
-                                    Start Well Analysis
+                                    <span>Start Well Analysis</span>
 
                                     <ArrowRight className="h-4 w-4" />
                                 </Link>
 
                                 <Link
                                     to="/prediction"
-                                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-600 px-5 py-3 text-xs font-extrabold text-white transition hover:bg-slate-800"
+                                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-600 bg-white/5 px-5 py-2.5 text-xs font-extrabold text-white backdrop-blur transition hover:border-slate-500 hover:bg-white/10"
                                 >
                                     <BrainCircuit className="h-4 w-4" />
 
-                                    Open Prediction
+                                    <span>Open Prediction</span>
                                 </Link>
 
                             </div>
 
                         </div>
 
-                    </section>
+                    </nav>
 
 
                     {/* ==================================================
@@ -1509,34 +1517,7 @@ function Dashboard() {
                         PROJECT STATUS
                     ================================================== */}
 
-                    <section className="mt-8 rounded-2xl border border-blue-100 bg-blue-50/60 p-5">
-
-                        <div className="flex items-start gap-3">
-
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
-
-                                <Activity className="h-4 w-4 text-blue-600" />
-
-                            </div>
-
-                            <div>
-
-                                <p className="text-xs font-extrabold text-blue-800">
-                                    Live System Status
-                                </p>
-
-                                <p className="mt-1 text-[11px] leading-5 text-blue-700">
-                                    Document ingestion, PostgreSQL,
-                                    RAG retrieval, NLP analysis,
-                                    nearby-well intelligence and
-                                    prototype prediction are integrated.
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                    </section>
+                   
 
                 </div>
 

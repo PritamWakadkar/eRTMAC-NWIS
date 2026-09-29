@@ -1,8 +1,8 @@
 import {
-    Activity,
-    Database,
-    ShieldCheck,
-} from "lucide-react";
+    RiPulseLine as Activity,
+    RiDatabase2Line as Database,
+    RiShieldCheckLine as ShieldCheck,
+} from "@remixicon/react";
 
 function Footer() {
     return (
@@ -61,25 +61,6 @@ function Footer() {
                 </div>
 
 
-                {/* Bottom */}
-
-                <div className="mt-7 flex flex-col gap-3 border-t border-slate-100 pt-5 text-[10px] text-slate-400 sm:flex-row sm:items-center sm:justify-between">
-
-                    <p>
-                        eRTMAC-NWIS • Smart Drilling Intelligence
-                    </p>
-
-                    <div className="flex items-center gap-2">
-
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-
-                        <span className="font-semibold">
-                            System Online
-                        </span>
-
-                    </div>
-
-                </div>
 
             </div>
 

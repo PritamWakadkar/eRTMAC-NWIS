@@ -3,26 +3,26 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import {
-    Activity,
-    AlertCircle,
-    ArrowLeft,
-    CheckCircle2,
-    ChevronDown,
-    ChevronUp,
-    Database,
-    FileSearch,
-    Filter,
-    MapPin,
-    Search,
-    Sparkles,
-    Target,
-    Waves,
-    Zap,
-    Gauge,
-    FileText,
-    Loader2,
-    X,
-} from "lucide-react";
+    RiPulseLine as Activity,
+    RiErrorWarningLine as AlertCircle,
+    RiArrowLeftLine as ArrowLeft,
+    RiCheckboxCircleLine as CheckCircle2,
+    RiArrowDownSLine as ChevronDown,
+    RiArrowUpSLine as ChevronUp,
+    RiDatabase2Line as Database,
+    RiFileSearchLine as FileSearch,
+    RiFilter3Line as Filter,
+    RiMapPinLine as MapPin,
+    RiSearchLine as Search,
+    RiSparklingLine as Sparkles,
+    RiTargetLine as Target,
+    RiWaterFlashLine as Waves,
+    RiFlashlightLine as Zap,
+    RiDashboard3Line as Gauge,
+    RiFileTextLine as FileText,
+    RiLoader4Line as Loader2,
+    RiCloseLine as X,
+} from "@remixicon/react";
 
 import { analyzeWell } from "../services/api";
 import { loadAnalysis, saveAnalysis } from "../services/analisisStorage";
@@ -738,10 +738,7 @@ export default function EventAnalysis() {
                 <div className="mb-8 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
                     <div>
                         <div className="mb-3 flex flex-wrap items-center gap-2">
-                            <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-[1.5px] text-blue-700">
-                                <Activity size={13} />
-                                Event Intelligence
-                            </span>
+                          
 
                             {hasAnalysis && !loading && (
                                 <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-[1.5px] text-emerald-700">
