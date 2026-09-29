@@ -16,8 +16,9 @@ function Footer() {
 
                     <div className="flex items-start gap-3">
 
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#172033]">
-                            <Database className="h-5 w-5 text-white" />
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff]">
+                           
+                             &hearts;
                         </div>
 
                         <div>

@@ -628,69 +628,66 @@ function Dashboard() {
                     </nav>
 
 
+{/* hiii */}
+
+
                     {/* ==================================================
-                        SYSTEM CAPABILITIES
+                        INTELLIGENCE PIPELINE
                     ================================================== */}
 
-                    <section className="mt-8">
+                    <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 
-                        <div className="mb-4">
+                        <div className="flex items-start gap-3">
 
-                            <h2 className="text-lg font-extrabold text-[#172033]">
-                                System Capabilities
-                            </h2>
+                          
 
-                            <p className="mt-1 text-xs text-slate-500">
-                                Core intelligence modules
-                                available in the system.
-                            </p>
+                            <div>
+
+                                <h2 className="text-lg font-extrabold text-[#172033]">
+                                    Intelligence Pipeline
+                                </h2>
+
+                                <p className="mt-1 text-xs text-slate-500">
+                                    From uploaded drilling report
+                                    to AI-powered well intelligence.
+                                </p>
+
+                            </div>
 
                         </div>
 
-                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-                            {systemStats.map(
-                                (stat) => {
+                        <div className="mt-5 grid gap-3 md:grid-cols-5">
 
-                                    const Icon =
-                                        stat.icon;
+                            <PipelineStep
+                                number="01"
+                                title="Upload"
+                                description="Upload drilling report PDF"
+                            />
 
-                                    return (
-                                        <div
-                                            key={stat.label}
-                                            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-                                        >
+                            <PipelineStep
+                                number="02"
+                                title="Process"
+                                description="Extract and index report evidence"
+                            />
 
-                                            <div className="flex items-start justify-between">
+                            <PipelineStep
+                                number="03"
+                                title="RAG"
+                                description="Retrieve evidence from the knowledge base"
+                            />
 
-                                                <div>
+                            <PipelineStep
+                                number="04"
+                                title="AI Analysis"
+                                description="Generate well intelligence"
+                            />
 
-                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                                                        {stat.label}
-                                                    </p>
-
-                                                    <p className="mt-2 text-base font-extrabold text-[#172033]">
-                                                        {stat.value}
-                                                    </p>
-
-                                                    <p className="mt-1 text-xs leading-5 text-slate-500">
-                                                        {stat.description}
-                                                    </p>
-
-                                                </div>
-
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
-
-                                                    <Icon className="h-5 w-5 text-blue-600" />
-
-                                                </div>
-
-                                            </div>
-
-                                        </div>
-                                    );
-                                }
-                            )}
+                            <PipelineStep
+                                number="05"
+                                title="Decision"
+                                description="Use well and offset-well intelligence"
+                            />
 
                         </div>
 
@@ -1404,6 +1401,7 @@ function Dashboard() {
                                                     ) : (
 
                                                         <button
+
                                                             type="button"
                                                             disabled={
                                                                 isProcessing
@@ -1446,71 +1444,6 @@ function Dashboard() {
                     </section>
 
 
-                    {/* ==================================================
-                        INTELLIGENCE PIPELINE
-                    ================================================== */}
-
-                    <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-
-                        <div className="flex items-start gap-3">
-
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#172033]">
-
-                                <Database className="h-5 w-5 text-white" />
-
-                            </div>
-
-                            <div>
-
-                                <h2 className="text-lg font-extrabold text-[#172033]">
-                                    Intelligence Pipeline
-                                </h2>
-
-                                <p className="mt-1 text-xs text-slate-500">
-                                    From uploaded drilling report
-                                    to AI-powered well intelligence.
-                                </p>
-
-                            </div>
-
-                        </div>
-
-
-                        <div className="mt-5 grid gap-3 md:grid-cols-5">
-
-                            <PipelineStep
-                                number="01"
-                                title="Upload"
-                                description="Upload drilling report PDF"
-                            />
-
-                            <PipelineStep
-                                number="02"
-                                title="Process"
-                                description="Extract and index report evidence"
-                            />
-
-                            <PipelineStep
-                                number="03"
-                                title="RAG"
-                                description="Retrieve evidence from the knowledge base"
-                            />
-
-                            <PipelineStep
-                                number="04"
-                                title="AI Analysis"
-                                description="Generate well intelligence"
-                            />
-
-                            <PipelineStep
-                                number="05"
-                                title="Decision"
-                                description="Use well and offset-well intelligence"
-                            />
-
-                        </div>
-
-                    </section>
 
 
                     {/* ==================================================
