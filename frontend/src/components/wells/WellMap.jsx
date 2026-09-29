@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   MapContainer,
   TileLayer,
@@ -6,6 +7,18 @@ import {
   Popup,
   useMap,
 } from "react-leaflet";
+import {
+  RiMapPinRangeLine,
+  RiSearchLine,
+  RiCloseLine,
+  RiFocus3Line,
+  RiArrowRightLine,
+  RiDatabase2Line,
+  RiRefreshLine,
+  RiShieldCheckLine,
+  RiAlertLine,
+  RiFilter3Line,
+} from "@remixicon/react";
 import "leaflet/dist/leaflet.css";
 import {
   RiMapPinLine,
@@ -21,9 +34,22 @@ function MapController({ wells, selectedId, markerRefs }) {
   const fitted = useRef(false);
 
   useEffect(() => {
-    if (fitted.current || wells.length === 0) return;
-    fitted.current = true;
+    if (wells.length === 0) return;
+    if (!fitted.current) {
+      fitted.current = true;
+      if (wells.length === 1) {
+        map.setView([wells[0].latitude, wells[0].longitude], 12);
+      } else {
+        map.fitBounds(
+          wells.map((w) => [w.latitude, w.longitude]),
+          { padding: [50, 50] }
+        );
+      }
+    }
+  }, [wells, map]);
 
+  useEffect(() => {
+    if (!resetTrigger || wells.length === 0) return;
     if (wells.length === 1) {
       map.setView([wells[0].latitude, wells[0].longitude], 12);
     } else {
@@ -32,7 +58,7 @@ function MapController({ wells, selectedId, markerRefs }) {
         { padding: [50, 50] }
       );
     }
-  }, [wells, map]);
+  }, [resetTrigger, wells, map]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -55,10 +81,14 @@ export default function WellMap() {
   const [wells, setWells] = useState([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [selectedField, setSelectedField] = useState("all");
   const [selectedId, setSelectedId] = useState(null);
+  const [resetTrigger, setResetTrigger] = useState(0);
   const markerRefs = useRef({});
 
-  useEffect(() => {
+  // Fetch backend wells if available, merge or supplement
+  const loadBackendWells = () => {
+    setBackendSync("connecting");
     let cancelled = false;
 
     fetch(`${API_URL}/api/well-map`)
@@ -82,13 +112,30 @@ export default function WellMap() {
     return () => {
       cancelled = true;
     };
+  };
+
+  useEffect(() => {
+    const cleanup = loadBackendWells();
+    return cleanup;
   }, []);
+
+  // Distinct field names for quick filtering
+  const fields = useMemo(() => {
+    const list = new Set();
+    wells.forEach((w) => {
+      if (w.field) list.add(w.field);
+    });
+    return ["all", ...Array.from(list).sort()];
+  }, [wells]);
 
   const visibleWells = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return wells;
-    return wells.filter(
-      (w) =>
+    return wells.filter((w) => {
+      if (selectedField !== "all" && w.field !== selectedField) {
+        return false;
+      }
+      if (!q) return true;
+      return (
         w.well_id.toLowerCase().includes(q) ||
         (w.formation && w.formation.toLowerCase().includes(q))
     );

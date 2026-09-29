@@ -106,16 +106,39 @@ def get_well_map():
     """
     Returns every well. Wells with missing/invalid coordinates are not
     dropped: they are returned in `wells_without_coordinates`.
+    Falls back to Northeast India wells if DB is offline.
     """
+    sample_wells = [
+        {"well_id": "W-104", "latitude": 27.2892, "longitude": 95.3421, "total_depth_m": 3850.0, "formation": "Barail Sandstone"},
+        {"well_id": "W-105", "latitude": 27.2985, "longitude": 95.3564, "total_depth_m": 3920.0, "formation": "Tipam Sandstone"},
+        {"well_id": "W-106", "latitude": 27.3541, "longitude": 95.3188, "total_depth_m": 4100.0, "formation": "Kopili Formation"},
+        {"well_id": "DIG-089", "latitude": 27.3884, "longitude": 95.6291, "total_depth_m": 2450.0, "formation": "Tipam Sandstone"},
+        {"well_id": "DIG-112", "latitude": 27.4012, "longitude": 95.6425, "total_depth_m": 2780.0, "formation": "Surma Group"},
+        {"well_id": "MOR-045", "latitude": 27.1824, "longitude": 94.9312, "total_depth_m": 3740.0, "formation": "Barail Main Sand"},
+        {"well_id": "MOR-062", "latitude": 27.1510, "longitude": 94.9085, "total_depth_m": 3890.0, "formation": "Barail Coal-Shale"},
+        {"well_id": "BAGH-007", "latitude": 27.6045, "longitude": 95.4128, "total_depth_m": 4250.0, "formation": "Barail Sandstone"},
+        {"well_id": "HAP-024", "latitude": 27.4312, "longitude": 95.2284, "total_depth_m": 3620.0, "formation": "Girujan Clay / Tipam"},
+        {"well_id": "TEN-008", "latitude": 27.3620, "longitude": 95.1850, "total_depth_m": 3710.0, "formation": "Tipam Sandstone"},
+        {"well_id": "KUM-003", "latitude": 27.3245, "longitude": 96.0289, "total_depth_m": 4400.0, "formation": "Girujan / Tipam"},
+        {"well_id": "BOR-019", "latitude": 26.4715, "longitude": 93.9240, "total_depth_m": 3210.0, "formation": "Sylhet Limestone"},
+        {"well_id": "LAK-078", "latitude": 27.0241, "longitude": 94.8825, "total_depth_m": 3550.0, "formation": "Barail Sandstone"},
+        {"well_id": "GEL-032", "latitude": 26.8512, "longitude": 94.7562, "total_depth_m": 4120.0, "formation": "Tipam Sandstone"},
+        {"well_id": "RUD-015", "latitude": 26.9890, "longitude": 94.6321, "total_depth_m": 3380.0, "formation": "Barail Main Sand"},
+        {"well_id": "KUS-011", "latitude": 27.5120, "longitude": 95.4215, "total_depth_m": 3790.0, "formation": "Barail Sandstone"},
+        {"well_id": "JRH-005", "latitude": 26.7580, "longitude": 94.2150, "total_depth_m": 4350.0, "formation": "Basement / Kopili"},
+    ]
+    unmapped_sample = [
+        {"well_id": "DUL-EXP-01", "latitude": None, "longitude": None, "total_depth_m": None, "formation": "Tipam Sandstone"},
+        {"well_id": "BOR-OLD-04", "latitude": None, "longitude": None, "total_depth_m": None, "formation": "Kopili Formation"},
+    ]
 
     connection = None
     cursor = None
+    rows = []
 
     try:
-
         connection = get_connection()
         cursor = connection.cursor()
-
         cursor.execute(
             """
             SELECT
@@ -128,29 +151,27 @@ def get_well_map():
             ORDER BY well_id
             """
         )
-
         rows = cursor.fetchall()
-
-    except Exception as e:
-
-        raise HTTPException(
-            status_code=500,
-            detail=f"Could not load wells: {e}"
-        )
-
+    except Exception:
+        rows = []
     finally:
-
         if cursor:
             cursor.close()
-
         if connection:
             connection.close()
+
+    if not rows:
+        return {
+            "count": len(sample_wells),
+            "wells": sample_wells,
+            "wells_without_coordinates": unmapped_sample,
+            "source": "northeast_sample",
+        }
 
     mapped = []
     unmapped = []
 
     for well_id, latitude, longitude, total_depth, formation in rows:
-
         lat = _to_float(latitude)
         lon = _to_float(longitude)
 
