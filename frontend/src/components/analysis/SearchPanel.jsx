@@ -107,26 +107,7 @@ function SearchPanel({
 
                     </div>
 
-                    {/* Technology indicators */}
-
-                    <div className="hidden shrink-0 items-center gap-2 lg:flex">
-
-                        <TechBadge
-                            icon={RiSparklingLine}
-                            label="NLP"
-                        />
-
-                        <TechBadge
-                            icon={RiDatabase2Line}
-                            label="FAISS"
-                        />
-
-                        <TechBadge
-                            icon={RiFlashlightLine}
-                            label="RAG"
-                        />
-
-                    </div>
+                 
 
                 </div>
 

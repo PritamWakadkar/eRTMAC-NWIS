@@ -539,61 +539,6 @@ function Analysis() {
                     )}
  
  
-                    {/* PIPELINE */}
- 
-                    <section className="mt-10 overflow-hidden rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_15px_50px_rgba(15,23,42,0.05)] sm:p-8">
-                        <div className="flex items-start gap-4">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-900 to-blue-900 shadow-lg">
-                                <Database className="h-5 w-5 text-white" />
-                            </div>
- 
-                            <div>
-                                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-500">
-                                    AI WORKFLOW
-                                </p>
- 
-                                <h2 className="mt-1 text-xl font-black text-slate-900">
-                                    From Question to Evidence
-                                </h2>
- 
-                                <p className="mt-1 text-xs text-slate-500">
-                                    How your query moves through the eRTMAC-NWIS
-                                    intelligence pipeline.
-                                </p>
-                            </div>
-                        </div>
- 
-                        <div className="mt-8 grid gap-4 md:grid-cols-4">
-                            <PipelineStep
-                                number="01"
-                                icon={Search}
-                                title="Query"
-                                description="Natural-language drilling question"
-                                gradient="from-blue-500 to-cyan-500"
-                            />
-                            <PipelineStep
-                                number="02"
-                                icon={BrainCircuit}
-                                title="NLP"
-                                description="Intent, event and depth extraction"
-                                gradient="from-indigo-500 to-blue-600"
-                            />
-                            <PipelineStep
-                                number="03"
-                                icon={Database}
-                                title="RAG"
-                                description="Retrieve evidence from reports"
-                                gradient="from-violet-500 to-purple-600"
-                            />
-                            <PipelineStep
-                                number="04"
-                                icon={CheckCircle2}
-                                title="Answer"
-                                description="Evidence-grounded result"
-                                gradient="from-emerald-500 to-teal-600"
-                            />
-                        </div>
-                    </section>
  
  
                 </div>
