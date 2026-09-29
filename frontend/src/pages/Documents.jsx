@@ -418,9 +418,8 @@ const Documents = () => {
 
         const confirmed =
             window.confirm(
-                `Are you sure you want to delete "${fileName}"?\n\n` +
-                "This will permanently remove the PDF, " +
-                "database record, and rebuild the RAG/FAISS index."
+                "This will permanently remove the PDF and " +
+                "update the report database."
             );
 
 
@@ -466,7 +465,7 @@ const Documents = () => {
 
                 setSuccessMessage(
                     `"${fileName}" deleted successfully. ` +
-                    `RAG index rebuilt${
+                    `Report database updated${
                         typeof remainingCount === "number"
                             ? ` with ${remainingCount} remaining PDF(s).`
                             : "."
@@ -612,9 +611,8 @@ const Documents = () => {
 
                             <p className="max-w-2xl text-sm leading-6 text-slate-500">
                                 Upload drilling reports and
-                                process them through the
-                                RAG document intelligence
-                                pipeline.
+                                process them to enable
+                                instant search and insights.
                             </p>
 
                         </div>

@@ -82,54 +82,18 @@ function SearchPanel({
             {/* ================================================= */}
 
             <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-[#172554] to-blue-900 px-6 py-7 sm:px-8">
-
                 <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-
                     <div className="flex items-start gap-4">
-
-                        {/* Heading */}
-
                         <div>
-
-                         
-
-                            <h2 className="mt-3 text-xl font-black tracking-tight text-white sm:text-2xl">
-                                Well Intelligence Search
+                            <h2 className="mt-1 text-xl font-black tracking-tight text-white sm:text-2xl">
+                                Well Search & Insights
                             </h2>
-
                             <p className="mt-2 max-w-2xl text-xs leading-6 text-blue-100/70 sm:text-sm">
-                                Ask questions in natural language about wells,
-                                drilling events, depths, formations and
-                                historical observations.
+                                Ask questions in plain English about well locations, depths, formations, and reports.
                             </p>
-
                         </div>
-
                     </div>
-
-                    {/* Technology indicators */}
-
-                    <div className="hidden shrink-0 items-center gap-2 lg:flex">
-
-                        <TechBadge
-                            icon={RiSparklingLine}
-                            label="NLP"
-                        />
-
-                        <TechBadge
-                            icon={RiDatabase2Line}
-                            label="FAISS"
-                        />
-
-                        <TechBadge
-                            icon={RiFlashlightLine}
-                            label="RAG"
-                        />
-
-                    </div>
-
                 </div>
-
             </div>
 
             {/* ================================================= */}

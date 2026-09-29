@@ -341,9 +341,9 @@ function Prediction() {
 
                                         </p>
 
-                                        <p className="mt-1 text-xs font-bold text-slate-700">
+                                         <p className="mt-1 text-xs font-bold text-slate-700">
 
-                                            ML event probability
+                                            Event Risk Assessment
 
                                         </p>
 
@@ -371,7 +371,7 @@ function Prediction() {
                         <div className="p-2">
 
                             <Loading
-                                message="Generating drilling event prediction..."
+                                message="Calculating risk assessment..."
                             />
 
                         </div>
@@ -387,13 +387,13 @@ function Prediction() {
 
                             <span className="rounded-full bg-indigo-50 px-4 py-2 text-[9px] font-bold text-indigo-600">
 
-                                🧠 Processing features
+                                ⚡ Evaluating parameters
 
                             </span>
 
                             <span className="rounded-full bg-purple-50 px-4 py-2 text-[9px] font-bold text-purple-600">
 
-                                ✨ Running ML model
+                                ✨ Calculating probabilities
 
                             </span>
 

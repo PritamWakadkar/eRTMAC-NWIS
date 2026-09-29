@@ -279,10 +279,8 @@ function PredictionPanel({
                             </span>
 
                             <span className="mt-1 block text-[11px] leading-5 text-slate-500">
-                                Use this for a well with no parameter
-                                data in the dataset, for example a well
-                                added from an uploaded report. The model
-                                will run on the values you enter.
+                                Use this to specify customized well parameters manually.
+                                The system will evaluate your inputs in real time.
                             </span>
 
                         </span>
@@ -402,14 +400,12 @@ function PredictionPanel({
                         <div>
 
                             <p className="text-xs font-extrabold text-blue-800">
-                                Prediction Model
+                                Risk Analytics
                             </p>
 
                             <p className="mt-1 text-[11px] leading-5 text-blue-700">
-                                The system evaluates drilling
-                                parameters such as ROP, mud weight,
-                                torque, ECD, pump rate and distance
-                                to estimate event probabilities.
+                                Evaluates operational parameters (ROP, mud weight,
+                                torque, ECD, pump rate) to estimate hazard safety levels.
                             </p>
 
                         </div>

@@ -1,5 +1,6 @@
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
+import AIChatDrawer from "../common/AIChatDrawer";
 
 function Layout({ children }) {
     return (
@@ -11,8 +12,6 @@ function Layout({ children }) {
             {/* Main Application Area */}
             <div className="min-h-screen md:pl-64">
 
-              
-
                 <main>
                     {children}
                 </main>
@@ -21,8 +20,11 @@ function Layout({ children }) {
 
             </div>
 
+            {/* AI RAG Assistant Drawer */}
+            <AIChatDrawer />
+
         </div>
     );
 }
 
-export default Layout;
+export default Layout;

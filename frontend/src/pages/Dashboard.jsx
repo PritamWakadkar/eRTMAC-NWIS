@@ -73,9 +73,9 @@ function Dashboard() {
     const systemStats = [
         {
             label: "AI Analysis",
-            value: "NLP + RAG",
+            value: "Smart Query",
             description:
-                "Natural-language well intelligence",
+                "Ask questions about wells in plain English",
             icon: BrainCircuit,
         },
 
@@ -89,17 +89,17 @@ function Dashboard() {
 
         {
             label: "Prediction",
-            value: "ML Model",
+            value: "Risk Forecast",
             description:
-                "Drilling event prediction",
+                "Real-time safety risk assessment",
             icon: Activity,
         },
 
         {
             label: "Knowledge Base",
-            value: "RAG",
+            value: "Report Vault",
             description:
-                "Historical drilling reports",
+                "Search historical drilling reports",
             icon: Database,
         },
     ];

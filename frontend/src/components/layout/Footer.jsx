@@ -44,7 +44,7 @@ function Footer() {
 
                         <StatusItem
                             icon={Activity}
-                            label="NLP + RAG"
+                            label="Smart Search"
                         />
 
                         <StatusItem

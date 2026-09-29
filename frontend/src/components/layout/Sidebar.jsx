@@ -3,12 +3,13 @@ import { NavLink } from "react-router-dom";
 import {
     RiMenuLine,
     RiCloseLine,
-    RiDashboardLine,
-    RiSearchLine,
+    RiHome4Line,
+    RiSearchEyeLine,
+    RiFileList3Line,
     RiBrainLine,
-    RiPulseLine,
-    RiMapPinRangeLine,
+    RiMapPin2Line,
 } from "@remixicon/react";
+import swarnaLogo from "../../assets/swarna_logo.jpg";
 
 function Sidebar() {
     const [open, setOpen] = useState(false);
@@ -16,267 +17,212 @@ function Sidebar() {
     const links = [
         {
             to: "/",
-            label: "Dashboard",
-            icon: RiDashboardLine,
-        },
-        {
-            to: "/analysis",
-            label: "Well Analysis",
-            icon: RiSearchLine,
-        },
-        {
-            to: "/event-analysis",
-            label: "Event Analysis",
-            icon: RiPulseLine,
-        },
-        {
-            to: "/prediction",
-            label: "Prediction",
-            icon: RiBrainLine,
+            label: "Home / Overview",
+            icon: RiHome4Line,
         },
         {
             to: "/well-map",
-            label: "Well Map",
-            icon: RiMapPinRangeLine,
+            label: "Explore Map",
+            icon: RiMapPin2Line,
+        },
+        {
+            to: "/analysis",
+            label: "Ask & Search Wells",
+            icon: RiSearchEyeLine,
+        },
+        {
+            to: "/prediction",
+            label: "Risk Prediction",
+            icon: RiBrainLine,
+        },
+        {
+            to: "/event-analysis",
+            label: "Event Logs",
+            icon: RiFileList3Line,
         },
     ];
 
     const navLinkClass = ({ isActive }) =>
-        `flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold transition ${
+        `flex items-center gap-3.5 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
             isActive
-                ? "bg-blue-50 text-blue-600"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
         }`;
 
     return (
         <>
             {/* Mobile Menu Button */}
-
             <button
                 type="button"
                 onClick={() => setOpen(true)}
-                className="fixed bottom-5 left-5 z-[90] flex h-12 w-12 items-center justify-center rounded-full bg-[#172033] text-white shadow-lg md:hidden"
+                className="fixed bottom-5 left-5 z-[90] flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-white shadow-xl md:hidden active:scale-95 transition"
                 aria-label="Open navigation"
             >
-                <RiMenuLine className="h-5 w-5" />
+                <RiMenuLine className="h-6 w-6" />
             </button>
 
-
             {/* Desktop Sidebar */}
-
             <aside className="fixed left-0 top-0 z-[80] hidden h-screen w-64 border-r border-slate-200 bg-white md:block">
-
                 <div className="flex h-full flex-col">
-
-                    {/* Logo */}
-
-                    <div className="border-b border-slate-200 p-5">
-
-                        <NavLink
-                            to="/"
-                            className="flex items-center gap-3"
-                        >
-
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#172033] text-xs font-extrabold text-white">
+                    {/* Header */}
+                    <div className="border-b border-slate-100 p-5">
+                        <NavLink to="/" className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-sm font-black text-white shadow-md shadow-blue-500/20">
                                 NW
                             </div>
-
                             <div>
-
-                                <h1 className="text-sm font-extrabold text-[#172033]">
+                                <h1 className="text-base font-extrabold text-slate-900">
                                     eRTMAC-NWIS
                                 </h1>
-
-                                <p className="mt-0.5 text-[9px] text-slate-400">
-                                    Well Intelligence System
+                                <p className="text-xs text-slate-500 font-medium">
+                                    Well Intelligence Portal
                                 </p>
-
                             </div>
-
                         </NavLink>
-
                     </div>
-
 
                     {/* Navigation */}
-
-                    <nav className="flex-1 p-4">
-
-                       
-
-                        <div className="space-y-1">
-
-                            {links.map((link) => {
-
-                                const Icon = link.icon;
-
-                                return (
-                                    <NavLink
-                                        key={link.to}
-                                        to={link.to}
-                                        className={navLinkClass}
-                                    >
-                                        <Icon className="h-4 w-4" />
-
-                                        {link.label}
-                                    </NavLink>
-                                );
-                            })}
-
-                        </div>
-
+                    <nav className="flex-1 p-4 space-y-1">
+                        <p className="px-3 pb-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                            Main Menu
+                        </p>
+                        {links.map((link) => {
+                            const Icon = link.icon;
+                            return (
+                                <NavLink
+                                    key={link.to}
+                                    to={link.to}
+                                    className={navLinkClass}
+                                >
+                                    <Icon className="h-5 w-5 shrink-0" />
+                                    <span>{link.label}</span>
+                                </NavLink>
+                            );
+                        })}
                     </nav>
 
-
-                    {/* System Status */}
-
-                    <div className="border-t border-slate-200 p-4">
-
-                        <div className="rounded-xl bg-slate-50 p-3">
-
-                            <div className="flex items-center gap-2">
-
-                                <span className="relative flex h-2.5 w-2.5">
-
-                                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-
-                                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
-
+                    {/* Swarna AI Sidebar Card */}
+                    <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+                        <button
+                            type="button"
+                            onClick={() => window.dispatchEvent(new CustomEvent("open-ai-chat"))}
+                            className="w-full text-left rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-3.5 text-white shadow-lg shadow-blue-500/20 hover:brightness-110 active:scale-[0.98] transition-all duration-200 group"
+                        >
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2.5">
+                                    <img
+                                        src={swarnaLogo}
+                                        alt="Swarna AI"
+                                        className="h-8 w-8 rounded-full object-cover border border-amber-300 shadow-xs"
+                                    />
+                                    <div>
+                                        <span className="text-xs font-extrabold text-white block">
+                                            Swarna AI
+                                        </span>
+                                        <span className="text-[10px] text-blue-200 block">
+                                            Smart Assistant
+                                        </span>
+                                    </div>
+                                </div>
+                                <span className="rounded-full bg-emerald-400/20 px-2 py-0.5 text-[9px] font-bold text-emerald-300 border border-emerald-400/30">
+                                    Online
                                 </span>
-
-                                <span className="text-[10px] font-extrabold text-slate-700">
-                                    System Online
-                                </span>
-
                             </div>
-
-                            <p className="mt-2 text-[9px] leading-4 text-slate-400">
-                                NLP, RAG and prediction services available.
+                            <p className="mt-2 text-[11px] text-blue-100 leading-relaxed font-medium">
+                                Ask Swarna any question about wells in plain English.
                             </p>
-
-                        </div>
-
+                        </button>
                     </div>
-
                 </div>
-
             </aside>
 
-
-            {/* Mobile Overlay */}
-
+            {/* Mobile Sidebar Overlay */}
             {open && (
                 <div
-                    className="fixed inset-0 z-[100] bg-slate-900/40 md:hidden"
+                    className="fixed inset-0 z-[100] bg-slate-950/40 backdrop-blur-sm md:hidden"
                     onClick={() => setOpen(false)}
                 />
             )}
 
-
-            {/* Mobile Sidebar */}
-
+            {/* Mobile Drawer */}
             <aside
                 className={`fixed left-0 top-0 z-[110] h-screen w-72 bg-white shadow-2xl transition-transform duration-300 md:hidden ${
-                    open
-                        ? "translate-x-0"
-                        : "-translate-x-full"
+                    open ? "translate-x-0" : "-translate-x-full"
                 }`}
             >
-
                 <div className="flex h-full flex-col">
-
-                    {/* Mobile Header */}
-
-                    <div className="flex items-center justify-between border-b border-slate-200 p-5">
-
+                    <div className="flex items-center justify-between border-b border-slate-100 p-5">
                         <div className="flex items-center gap-3">
-
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#172033] text-xs font-extrabold text-white">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-sm font-black text-white">
                                 NW
                             </div>
-
                             <div>
-
-                                <h1 className="text-sm font-extrabold text-[#172033]">
+                                <h1 className="text-base font-extrabold text-slate-900">
                                     eRTMAC-NWIS
                                 </h1>
-
-                                <p className="text-[9px] text-slate-400">
-                                    Well Intelligence System
+                                <p className="text-xs text-slate-500">
+                                    Well Intelligence Portal
                                 </p>
-
                             </div>
-
                         </div>
-
-
                         <button
                             type="button"
                             onClick={() => setOpen(false)}
-                            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
-                            aria-label="Close navigation"
+                            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
                         >
-                            <RiCloseLine className="h-5 w-5" />
+                            <RiCloseLine className="h-6 w-6" />
                         </button>
-
                     </div>
 
-
-                    {/* Mobile Navigation */}
-
-                    <nav className="flex-1 p-4">
-
-                        <p className="mb-3 px-3 text-[9px] font-extrabold uppercase tracking-[0.15em] text-slate-400">
-                            Navigation
-                        </p>
-
-                        <div className="space-y-1">
-
-                            {links.map((link) => {
-
-                                const Icon = link.icon;
-
-                                return (
-                                    <NavLink
-                                        key={link.to}
-                                        to={link.to}
-                                        onClick={() => setOpen(false)}
-                                        className={navLinkClass}
-                                    >
-                                        <Icon className="h-4 w-4" />
-
-                                        {link.label}
-                                    </NavLink>
-                                );
-                            })}
-
-                        </div>
-
+                    <nav className="flex-1 p-4 space-y-1">
+                        {links.map((link) => {
+                            const Icon = link.icon;
+                            return (
+                                <NavLink
+                                    key={link.to}
+                                    to={link.to}
+                                    onClick={() => setOpen(false)}
+                                    className={navLinkClass}
+                                >
+                                    <Icon className="h-5 w-5 shrink-0" />
+                                    <span>{link.label}</span>
+                                </NavLink>
+                            );
+                        })}
                     </nav>
 
-
-                    {/* Mobile Status */}
-
-                    <div className="border-t border-slate-200 p-4">
-
-                        <div className="rounded-xl bg-slate-50 p-3">
-
-                            <div className="flex items-center gap-2">
-
-                                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-
-                                <span className="text-[10px] font-extrabold text-slate-700">
-                                    System Online
-                                </span>
-
+                    <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setOpen(false);
+                                window.dispatchEvent(new CustomEvent("open-ai-chat"));
+                            }}
+                            className="w-full text-left rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-3.5 text-white shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all"
+                        >
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2.5">
+                                    <img
+                                        src={swarnaLogo}
+                                        alt="Swarna AI"
+                                        className="h-8 w-8 rounded-full object-cover border border-amber-300 shadow-xs"
+                                    />
+                                    <div>
+                                        <span className="text-xs font-extrabold text-white block">
+                                            Swarna AI
+                                        </span>
+                                        <span className="text-[10px] text-blue-200 block">
+                                            Smart Assistant
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-
-                        </div>
-
+                            <p className="mt-2 text-[11px] text-blue-100 leading-relaxed font-medium">
+                                Tap to ask Swarna questions in plain English.
+                            </p>
+                        </button>
                     </div>
-
                 </div>
-
             </aside>
         </>
     );

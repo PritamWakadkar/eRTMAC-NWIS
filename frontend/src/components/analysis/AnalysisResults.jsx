@@ -2126,7 +2126,7 @@ function QueryContext({
                         </p>
 
                         <p className="mt-0.5 text-xs font-semibold text-white">
-                            How the NLP engine interpreted your request
+                            How your search was processed
                         </p>
 
                     </div>
