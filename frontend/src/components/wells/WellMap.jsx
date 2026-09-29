@@ -8,7 +8,7 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL || "https://ertmac-nwis-4d1y.onrender.com";
 
 const BLANK = /^\s*$|not\s+(specified|available|found|recorded)|unknown|^n\/?a$/i;
 
