@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -22,14 +24,24 @@ app = FastAPI(
 # ================================================================
 # CORS
 # ================================================================
+# Set CORS_ORIGINS in Render as a comma-separated list, for example:
+#   https://my-frontend.onrender.com,https://my-frontend.vercel.app
+# Use * to allow every origin (fine for testing).
+
+_default_origins = "http://localhost:5173,http://127.0.0.1:5173"
+
+origins = [
+    o.strip().rstrip("/")
+    for o in os.getenv("CORS_ORIGINS", _default_origins).split(",")
+    if o.strip()
+]
+
+allow_all = "*" in origins
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173"
-    ],
-    allow_credentials=True,
+    allow_origins=["*"] if allow_all else origins,
+    allow_credentials=False if allow_all else True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
