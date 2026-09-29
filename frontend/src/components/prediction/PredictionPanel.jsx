@@ -6,6 +6,7 @@ import {
     RiRestartLine,
     RiMapPinLine,
 } from "@remixicon/react";
+import SpecularButton from "../common/SpecularButton";
 
 
 // Manual parameter fields (label, key, unit, example)
@@ -422,44 +423,50 @@ function PredictionPanel({
                 <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
 
                     {/* RESET */}
-
-                    <button
+                    <SpecularButton
                         type="button"
                         onClick={handleReset}
                         disabled={loading}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-3 text-xs font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        size="md"
+                        radius={14}
+                        tint="#ffffff"
+                        tintOpacity={1}
+                        textColor="#475569"
+                        lineColor="#94a3b8"
+                        baseColor="#e2e8f0"
+                        intensity={1}
+                        className="border border-slate-200"
                     >
-
                         <RiRestartLine className="h-4 w-4" />
-
-                        Reset
-
-                    </button>
-
+                        <span>Reset</span>
+                    </SpecularButton>
 
                     {/* PREDICT */}
-
-                    <button
+                    <SpecularButton
                         type="submit"
                         disabled={!canPredict}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#172033] px-6 py-3 text-xs font-extrabold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                        size="md"
+                        radius={14}
+                        tint="#172033"
+                        tintOpacity={1}
+                        textColor="#ffffff"
+                        lineColor="#818cf8"
+                        baseColor="#334155"
+                        intensity={1.4}
+                        className="shadow-md shadow-indigo-900/20"
                     >
-
                         {loading ? (
                             <>
                                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-
-                                Predicting...
+                                <span>Predicting...</span>
                             </>
                         ) : (
                             <>
                                 <RiSearchLine className="h-4 w-4" />
-
-                                Generate Prediction
+                                <span>Generate Prediction</span>
                             </>
                         )}
-
-                    </button>
+                    </SpecularButton>
 
                 </div>
 

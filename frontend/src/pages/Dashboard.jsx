@@ -25,6 +25,7 @@ import {
     uploadDocument,
 } from "../services/api";
 import TechText from "../components/common/TechText";
+import SpecularButton from "../components/common/SpecularButton";
 
 
 // ============================================================
@@ -601,25 +602,38 @@ function Dashboard() {
                             {/* Nav Buttons */}
                             <div className="flex flex-wrap items-center gap-3 shrink-0">
 
-                                <Link
-                                    to="/analysis"
-                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5 text-xs font-extrabold text-[#172033] shadow-sm transition hover:bg-slate-100"
+                                <SpecularButton
+                                    size="sm"
+                                    radius={14}
+                                    tint="#ffffff"
+                                    tintOpacity={1}
+                                    textColor="#172033"
+                                    lineColor="#38bdf8"
+                                    baseColor="#cbd5e1"
+                                    intensity={1.2}
+                                    onClick={() => navigate("/analysis")}
+                                    className="font-extrabold shadow-sm"
                                 >
                                     <Search className="h-4 w-4" />
-
                                     <span>Start Well Analysis</span>
-
                                     <ArrowRight className="h-4 w-4" />
-                                </Link>
+                                </SpecularButton>
 
-                                <Link
-                                    to="/prediction"
-                                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-600 bg-white/5 px-5 py-2.5 text-xs font-extrabold text-white backdrop-blur transition hover:border-slate-500 hover:bg-white/10"
+                                <SpecularButton
+                                    size="sm"
+                                    radius={14}
+                                    tint="#0f172a"
+                                    tintOpacity={0.8}
+                                    textColor="#ffffff"
+                                    lineColor="#a855f7"
+                                    baseColor="#334155"
+                                    intensity={1.2}
+                                    onClick={() => navigate("/prediction")}
+                                    className="font-extrabold border border-slate-700/60"
                                 >
                                     <BrainCircuit className="h-4 w-4" />
-
                                     <span>Open Prediction</span>
-                                </Link>
+                                </SpecularButton>
 
                             </div>
 

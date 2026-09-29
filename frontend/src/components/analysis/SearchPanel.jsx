@@ -9,6 +9,7 @@ import {
     RiArrowRightUpLine,
     RiFlashlightLine,
 } from "@remixicon/react";
+import SpecularButton from "../common/SpecularButton";
 
 function SearchPanel({
     question,
@@ -373,51 +374,50 @@ function SearchPanel({
 
                 <div className="mt-7 flex flex-col gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
 
-                    <button
+                    <SpecularButton
                         type="button"
                         onClick={handleReset}
                         disabled={loading}
-                        className="group inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-xs font-black text-slate-600 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+                        size="md"
+                        radius={14}
+                        tint="#ffffff"
+                        tintOpacity={1}
+                        textColor="#475569"
+                        lineColor="#94a3b8"
+                        baseColor="#e2e8f0"
+                        intensity={1}
+                        className="border border-slate-200"
                     >
+                        <RiRestartLine className="h-4 w-4" />
+                        <span>Reset</span>
+                    </SpecularButton>
 
-                        <RiRestartLine className="h-4 w-4 transition-transform duration-500 group-hover:rotate-[-90deg]" />
-
-                        Reset
-
-                    </button>
-
-                    <button
+                    <SpecularButton
                         type="submit"
-                        disabled={
-                            loading ||
-                            !question.trim()
-                        }
-                        className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 px-7 py-3.5 text-xs font-black text-white shadow-lg shadow-blue-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+                        disabled={loading || !question.trim()}
+                        size="md"
+                        radius={14}
+                        tint="#2563eb"
+                        tintOpacity={1}
+                        textColor="#ffffff"
+                        lineColor="#67e8f9"
+                        baseColor="#1d4ed8"
+                        intensity={1.5}
+                        className="shadow-lg shadow-blue-500/25"
                     >
-
-                        <span className="absolute inset-0 -translate-x-full bg-white/10 transition-transform duration-700 group-hover:translate-x-full" />
-
-                        <span className="relative flex items-center gap-2">
-
-                            {loading ? (
-                                <>
-                                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-
-                                    Analyzing...
-                                </>
-                            ) : (
-                                <>
-                                    <RiSearchLine className="h-4 w-4" />
-
-                                    Analyze Well Data
-
-                                    <RiArrowRightUpLine className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                                </>
-                            )}
-
-                        </span>
-
-                    </button>
+                        {loading ? (
+                            <>
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                                <span>Analyzing...</span>
+                            </>
+                        ) : (
+                            <>
+                                <RiSearchLine className="h-4 w-4" />
+                                <span>Analyze Well Data</span>
+                                <RiArrowRightUpLine className="h-4 w-4" />
+                            </>
+                        )}
+                    </SpecularButton>
 
                 </div>
 
