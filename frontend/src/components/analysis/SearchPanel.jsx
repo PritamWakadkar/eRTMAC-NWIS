@@ -87,18 +87,6 @@ function SearchPanel({
 
                     <div className="flex items-start gap-4">
 
-                        {/* Icon */}
-
-                        <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/10 shadow-lg ring-1 ring-white/10 backdrop-blur">
-
-                            <RiSearchLine className="h-6 w-6 text-white" />
-
-                            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-[#172554] bg-emerald-400">
-                                <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                            </span>
-
-                        </div>
-
                         {/* Heading */}
 
                         <div>
@@ -216,20 +204,6 @@ function SearchPanel({
                             AI Query
 
                         </div>
-
-                    </div>
-
-                    {/* Keyboard hint */}
-
-                    <div className="mt-2 flex items-center justify-between">
-
-                        <p className="text-[10px] font-medium text-slate-400">
-                            Ask naturally — no special syntax required.
-                        </p>
-
-                        <p className="hidden text-[10px] font-semibold text-slate-400 sm:block">
-                            Ctrl + Enter to analyze
-                        </p>
 
                     </div>
 
