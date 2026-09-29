@@ -608,19 +608,6 @@ function Prediction() {
                                 </div>
 
 
-                                {/* STATUS */}
-
-                                <div className="mt-5 flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
-
-                                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-
-                                    <p className="text-[10px] font-bold text-emerald-700">
-
-                                        Prediction engine ready for analysis
-
-                                    </p>
-
-                                </div>
 
                             </div>
 

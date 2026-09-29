@@ -389,34 +389,7 @@ function PredictionPanel({
                 </div>
 
 
-                {/* =====================================================
-                    INFORMATION
-                ====================================================== */}
 
-                <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 p-4">
-
-                    <div className="flex items-start gap-3">
-
-                        <RiBrainLine className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
-
-                        <div>
-
-                            <p className="text-xs font-extrabold text-blue-800">
-                                Prediction Model
-                            </p>
-
-                            <p className="mt-1 text-[11px] leading-5 text-blue-700">
-                                The system evaluates drilling
-                                parameters such as ROP, mud weight,
-                                torque, ECD, pump rate and distance
-                                to estimate event probabilities.
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                </div>
 
 
               

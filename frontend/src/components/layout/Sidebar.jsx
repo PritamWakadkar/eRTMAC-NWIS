@@ -130,33 +130,7 @@ function Sidebar() {
 
                     {/* System Status */}
 
-                    <div className="border-t border-slate-200 p-4">
-
-                        <div className="rounded-xl bg-slate-50 p-3">
-
-                            <div className="flex items-center gap-2">
-
-                                <span className="relative flex h-2.5 w-2.5">
-
-                                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-
-                                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
-
-                                </span>
-
-                                <span className="text-[10px] font-extrabold text-slate-700">
-                                    System Online
-                                </span>
-
-                            </div>
-
-                            <p className="mt-2 text-[9px] leading-4 text-slate-400">
-                                NLP, RAG and prediction services available.
-                            </p>
-
-                        </div>
-
-                    </div>
+                   
 
                 </div>
 

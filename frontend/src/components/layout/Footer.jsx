@@ -40,25 +40,7 @@ function Footer() {
 
                     {/* System Modules */}
 
-                    <div className="flex flex-wrap gap-2">
-
-                        <StatusItem
-                            icon={Activity}
-                            label="NLP + RAG"
-                        />
-
-                        <StatusItem
-                            icon={Database}
-                            label="Well Intelligence"
-                        />
-
-                        <StatusItem
-                            icon={ShieldCheck}
-                            label="Prediction"
-                        />
-
-                    </div>
-
+                 
                 </div>
 
 
