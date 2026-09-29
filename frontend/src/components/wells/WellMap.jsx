@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import {
   MapContainer,
   TileLayer,
@@ -7,18 +6,6 @@ import {
   Popup,
   useMap,
 } from "react-leaflet";
-import {
-  RiMapPinRangeLine,
-  RiSearchLine,
-  RiCloseLine,
-  RiFocus3Line,
-  RiArrowRightLine,
-  RiDatabase2Line,
-  RiRefreshLine,
-  RiShieldCheckLine,
-  RiAlertLine,
-  RiFilter3Line,
-} from "@remixicon/react";
 import "leaflet/dist/leaflet.css";
 import {
   RiMapPinLine,
@@ -34,22 +21,9 @@ function MapController({ wells, selectedId, markerRefs }) {
   const fitted = useRef(false);
 
   useEffect(() => {
-    if (wells.length === 0) return;
-    if (!fitted.current) {
-      fitted.current = true;
-      if (wells.length === 1) {
-        map.setView([wells[0].latitude, wells[0].longitude], 12);
-      } else {
-        map.fitBounds(
-          wells.map((w) => [w.latitude, w.longitude]),
-          { padding: [50, 50] }
-        );
-      }
-    }
-  }, [wells, map]);
+    if (fitted.current || wells.length === 0) return;
+    fitted.current = true;
 
-  useEffect(() => {
-    if (!resetTrigger || wells.length === 0) return;
     if (wells.length === 1) {
       map.setView([wells[0].latitude, wells[0].longitude], 12);
     } else {
@@ -58,7 +32,7 @@ function MapController({ wells, selectedId, markerRefs }) {
         { padding: [50, 50] }
       );
     }
-  }, [resetTrigger, wells, map]);
+  }, [wells, map]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -81,25 +55,29 @@ export default function WellMap() {
   const [wells, setWells] = useState([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
-  const [selectedField, setSelectedField] = useState("all");
   const [selectedId, setSelectedId] = useState(null);
-  const [resetTrigger, setResetTrigger] = useState(0);
   const markerRefs = useRef({});
 
-  // Fetch backend wells if available, merge or supplement
-  const loadBackendWells = () => {
-    setBackendSync("connecting");
+  useEffect(() => {
     let cancelled = false;
 
     fetch(`${API_URL}/api/well-map`)
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return;
-        setWells(data.wells || []);
+        if (data.wells && data.wells.length > 0) {
+          setWells(data.wells);
+        } else {
+          setWells([
+            { well_id: "W-101", latitude: 26.8467, longitude: 94.2389, formation: "Barail Sandstone", total_depth_m: 2450 },
+            { well_id: "W-102", latitude: 26.7500, longitude: 94.1500, formation: "Tipam Group", total_depth_m: 1890 },
+            { well_id: "W-103", latitude: 26.9100, longitude: 94.3200, formation: "Kopili Shale", total_depth_m: 3100 },
+            { well_id: "W-104", latitude: 26.6800, longitude: 94.4100, formation: "Girujan Clay", total_depth_m: 2150 }
+          ]);
+        }
       })
       .catch(() => {
         if (cancelled) return;
-        // Mock fallback wells for display
         setWells([
           { well_id: "W-101", latitude: 26.8467, longitude: 94.2389, formation: "Barail Sandstone", total_depth_m: 2450 },
           { well_id: "W-102", latitude: 26.7500, longitude: 94.1500, formation: "Tipam Group", total_depth_m: 1890 },
@@ -112,30 +90,13 @@ export default function WellMap() {
     return () => {
       cancelled = true;
     };
-  };
-
-  useEffect(() => {
-    const cleanup = loadBackendWells();
-    return cleanup;
   }, []);
-
-  // Distinct field names for quick filtering
-  const fields = useMemo(() => {
-    const list = new Set();
-    wells.forEach((w) => {
-      if (w.field) list.add(w.field);
-    });
-    return ["all", ...Array.from(list).sort()];
-  }, [wells]);
 
   const visibleWells = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return wells.filter((w) => {
-      if (selectedField !== "all" && w.field !== selectedField) {
-        return false;
-      }
-      if (!q) return true;
-      return (
+    if (!q) return wells;
+    return wells.filter(
+      (w) =>
         w.well_id.toLowerCase().includes(q) ||
         (w.formation && w.formation.toLowerCase().includes(q))
     );
