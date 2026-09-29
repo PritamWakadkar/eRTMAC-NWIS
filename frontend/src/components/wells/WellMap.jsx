@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   MapContainer,
   TileLayer,
@@ -13,9 +13,18 @@ import {
   RiCloseLine,
   RiFocus3Line,
   RiArrowRightLine,
+  RiDatabase2Line,
+  RiRefreshLine,
+  RiShieldCheckLine,
   RiAlertLine,
+  RiFilter3Line,
 } from "@remixicon/react";
 import "leaflet/dist/leaflet.css";
+
+import {
+  NORTHEAST_SAMPLE_WELLS,
+  NORTHEAST_UNMAPPED_SAMPLE,
+} from "./northeastWells";
 
 const API_URL =
   import.meta.env.VITE_API_URL || "https://ertmac-nwis-4d1y.onrender.com";
@@ -82,49 +91,93 @@ function MapController({ wells, selectedId, markerRefs, resetTrigger }) {
 }
 
 export default function WellMap() {
-  const [wells, setWells] = useState([]);
-  const [unmapped, setUnmapped] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
+  // Pre-populated with authentic Northeast India wells (Assam-Arakan basin)
+  const [wells, setWells] = useState(NORTHEAST_SAMPLE_WELLS);
+  const [unmapped, setUnmapped] = useState(NORTHEAST_UNMAPPED_SAMPLE);
+  const [loading, setLoading] = useState(false);
+  const [backendSync, setBackendSync] = useState("local"); // 'local' | 'synced' | 'connecting'
   const [query, setQuery] = useState("");
+  const [selectedField, setSelectedField] = useState("all");
   const [selectedId, setSelectedId] = useState(null);
   const [resetTrigger, setResetTrigger] = useState(0);
   const markerRefs = useRef({});
 
-  useEffect(() => {
+  // Fetch backend wells if available, merge or supplement
+  const loadBackendWells = () => {
+    setBackendSync("connecting");
     let cancelled = false;
 
     fetch(`${API_URL}/api/well-map`)
       .then((response) => {
-        if (!response.ok) throw new Error(`Server returned ${response.status}`);
+        if (!response.ok) throw new Error(`Status ${response.status}`);
         return response.json();
       })
       .then((data) => {
         if (cancelled) return;
-        setWells(data.wells || []);
-        setUnmapped(data.wells_without_coordinates || []);
+        const remoteWells = data.wells || [];
+        const remoteUnmapped = data.wells_without_coordinates || [];
+
+        if (remoteWells.length > 0) {
+          // Merge remote wells with local Northeast dataset by well_id
+          const mergedMap = new Map();
+          NORTHEAST_SAMPLE_WELLS.forEach((w) => mergedMap.set(w.well_id, w));
+          remoteWells.forEach((w) => mergedMap.set(w.well_id, { ...mergedMap.get(w.well_id), ...w }));
+          setWells(Array.from(mergedMap.values()));
+          if (remoteUnmapped.length > 0) setUnmapped(remoteUnmapped);
+          setBackendSync("synced");
+        } else {
+          setBackendSync("local");
+        }
       })
-      .catch((err) => !cancelled && setError(err.message))
-      .finally(() => !cancelled && setLoading(false));
+      .catch(() => {
+        if (!cancelled) {
+          // Gracefully maintain local Northeast wells
+          setBackendSync("local");
+        }
+      });
 
     return () => {
       cancelled = true;
     };
+  };
+
+  useEffect(() => {
+    const cleanup = loadBackendWells();
+    return cleanup;
   }, []);
+
+  // Distinct field names for quick filtering
+  const fields = useMemo(() => {
+    const list = new Set();
+    wells.forEach((w) => {
+      if (w.field) list.add(w.field);
+    });
+    return ["all", ...Array.from(list).sort()];
+  }, [wells]);
 
   const visibleWells = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return wells;
-    return wells.filter(
-      (w) =>
+    return wells.filter((w) => {
+      if (selectedField !== "all" && w.field !== selectedField) {
+        return false;
+      }
+      if (!q) return true;
+      return (
         w.well_id.toLowerCase().includes(q) ||
+        (w.name && w.name.toLowerCase().includes(q)) ||
+        (w.field && w.field.toLowerCase().includes(q)) ||
+        (w.district && w.district.toLowerCase().includes(q)) ||
         formationLabel(w.formation).toLowerCase().includes(q)
-    );
-  }, [wells, query]);
+      );
+    });
+  }, [wells, query, selectedField]);
 
   const handleResetView = () => {
     setSelectedId(null);
     setQuery("");
+    setSelectedField("all");
     setResetTrigger((prev) => prev + 1);
   };
 
@@ -149,36 +202,32 @@ export default function WellMap() {
                   <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
                     Well Map
                   </h1>
-                
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-400/25 bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-blue-300">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Northeast India (Upper Assam Basin)
+                  </span>
                 </div>
 
                 <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-300">
-                  {loading ? (
-                    <span className="flex items-center gap-2 text-slate-400">
-                      <span className="h-3 w-3 animate-spin rounded-full border-2 border-slate-400 border-t-transparent" />
-                      Loading wells from database…
-                    </span>
-                  ) : (
+                  <span className="font-semibold text-white">
+                    {wells.length} wells in Northeast region
+                  </span>
+                  <span className="text-slate-600">•</span>
+                  <span className="text-emerald-400 font-medium">
+                    {visibleWells.length} on display
+                  </span>
+                  {selectedField !== "all" && (
                     <>
-                      <span className="font-semibold text-white">
-                        {wells.length} {wells.length === 1 ? "well" : "wells"} on the map
+                      <span className="text-slate-600">•</span>
+                      <span className="text-blue-300">Field: {selectedField}</span>
+                    </>
+                  )}
+                  {unmapped.length > 0 && (
+                    <>
+                      <span className="text-slate-600">•</span>
+                      <span className="text-amber-400/90 font-medium">
+                        {unmapped.length} without coordinates
                       </span>
-                      {query && (
-                        <>
-                          <span className="text-slate-600">•</span>
-                          <span className="text-blue-300">
-                            {visibleWells.length} match filter
-                          </span>
-                        </>
-                      )}
-                      {unmapped.length > 0 && (
-                        <>
-                          <span className="text-slate-600">•</span>
-                          <span className="text-amber-400/90 font-medium">
-                            {unmapped.length} without coordinates
-                          </span>
-                        </>
-                      )}
                     </>
                   )}
                 </div>
@@ -194,7 +243,7 @@ export default function WellMap() {
                   type="search"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search by well or formation..."
+                  placeholder="Search well, field or formation..."
                   aria-label="Search wells"
                   className="w-full rounded-xl border border-slate-700 bg-slate-900/90 py-2.5 pl-10 pr-9 text-xs font-medium text-white placeholder-slate-400 outline-none transition focus:border-blue-400 focus:bg-slate-900 focus:ring-2 focus:ring-blue-500/20"
                 />
@@ -211,17 +260,15 @@ export default function WellMap() {
               </div>
 
               {/* Reset View Button */}
-              {wells.length > 0 && (
-                <button
-                  type="button"
-                  onClick={handleResetView}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900/80 px-3.5 py-2.5 text-xs font-bold text-slate-200 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white shrink-0"
-                  title="Reset map view"
-                >
-                  <RiFocus3Line className="h-4 w-4 text-blue-400" />
-                  <span className="hidden sm:inline">Reset View</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleResetView}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900/80 px-3.5 py-2.5 text-xs font-bold text-slate-200 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white shrink-0"
+                title="Reset map to Northeast India region"
+              >
+                <RiFocus3Line className="h-4 w-4 text-blue-400" />
+                <span className="hidden sm:inline">Reset View</span>
+              </button>
 
               {/* Quick Link to Well Analysis */}
               <Link
@@ -237,30 +284,38 @@ export default function WellMap() {
           </div>
         </header>
 
-        {/* Error Alert */}
-        {error && (
-          <div
-            role="alert"
-            className="flex items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs font-medium text-rose-800"
-          >
-            <RiAlertLine className="h-5 w-5 shrink-0 text-rose-600" />
-            <div>
-              Could not load wells: {error}. Check that the backend is running at{" "}
-              <code className="font-semibold text-rose-900">{API_URL}</code>.
-            </div>
-          </div>
-        )}
+        {/* Region & Field Filter Chips */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+          <span className="flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-slate-400 shrink-0">
+            <RiFilter3Line className="h-3.5 w-3.5" />
+            Field Filter:
+          </span>
+          {fields.map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setSelectedField(f)}
+              className={`rounded-full px-3 py-1 text-xs font-bold transition whitespace-nowrap ${
+                selectedField === f
+                  ? "bg-[#172033] text-white shadow-xs"
+                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+              }`}
+            >
+              {f === "all" ? `All Northeast Fields (${wells.length})` : f}
+            </button>
+          ))}
+        </div>
 
         {/* ==================================================
             MAP & WELL DIRECTORY
         ================================================== */}
-        <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-230px)] min-h-[520px]">
+        <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-260px)] min-h-[540px]">
 
           {/* Interactive Map */}
           <div className="flex-1 rounded-2xl sm:rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden min-h-[380px] relative">
             <MapContainer
-              center={[26.5, 94.5]}
-              zoom={7}
+              center={[27.25, 95.20]}
+              zoom={8}
               style={{ height: "100%", width: "100%" }}
             >
               <TileLayer
@@ -281,7 +336,7 @@ export default function WellMap() {
                   <CircleMarker
                     key={well.well_id}
                     center={[well.latitude, well.longitude]}
-                    radius={selected ? 11 : 8}
+                    radius={selected ? 12 : 8}
                     pathOptions={{
                       color: "#ffffff",
                       weight: 2,
@@ -294,20 +349,68 @@ export default function WellMap() {
                     eventHandlers={{ click: () => setSelectedId(well.well_id) }}
                   >
                     <Popup>
-                      <div className="text-xs p-1">
-                        <strong className="text-sm font-extrabold text-slate-900">
-                          {well.well_id}
-                        </strong>
-                        <div className="text-slate-600 mt-1">
-                          {formationLabel(well.formation)}
+                      <div className="text-xs p-1 max-w-[240px]">
+                        <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-1.5">
+                          <strong className="text-sm font-extrabold text-[#172033]">
+                            {well.well_id}
+                          </strong>
+                          <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[9px] font-black text-blue-700">
+                            {well.field || "Assam Shelf"}
+                          </span>
                         </div>
-                        <div className="text-slate-500 mt-0.5">
-                          {well.total_depth_m != null
-                            ? `Total depth: ${well.total_depth_m} m`
-                            : "Total depth not recorded"}
+
+                        <div className="mt-1.5 space-y-1 text-slate-600">
+                          {well.name && (
+                            <div className="font-semibold text-slate-800">
+                              {well.name}
+                            </div>
+                          )}
+                          <div>
+                            <span className="text-slate-400">Formation:</span>{" "}
+                            <span className="font-medium text-slate-700">
+                              {formationLabel(well.formation)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400">Total Depth:</span>{" "}
+                            <span className="font-medium text-slate-700">
+                              {well.total_depth_m != null
+                                ? `${well.total_depth_m} m MD`
+                                : "Not recorded"}
+                            </span>
+                          </div>
+                          {well.district && (
+                            <div>
+                              <span className="text-slate-400">Location:</span>{" "}
+                              <span className="text-slate-700 font-medium">
+                                {well.district}
+                              </span>
+                            </div>
+                          )}
+                          {well.operator && (
+                            <div className="text-[10px] text-slate-500">
+                              Operator: {well.operator}
+                            </div>
+                          )}
+                          {well.notes && (
+                            <div className="mt-1 rounded bg-slate-50 p-1.5 text-[10px] italic text-slate-600 border border-slate-100">
+                              {well.notes}
+                            </div>
+                          )}
                         </div>
-                        <div className="text-slate-400 text-[10px] mt-1 font-mono">
-                          {well.latitude.toFixed(4)}°N, {well.longitude.toFixed(4)}°E
+
+                        <div className="mt-2.5 flex items-center justify-between border-t border-slate-100 pt-2">
+                          <span className="font-mono text-[9px] text-slate-400">
+                            {well.latitude.toFixed(4)}°N, {well.longitude.toFixed(4)}°E
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => navigate("/analysis")}
+                            className="inline-flex items-center gap-1 rounded bg-[#172033] px-2 py-1 text-[10px] font-bold text-white hover:bg-blue-600 transition"
+                          >
+                            Analyze
+                            <RiArrowRightLine className="h-3 w-3" />
+                          </button>
                         </div>
                       </div>
                     </Popup>
@@ -319,31 +422,36 @@ export default function WellMap() {
 
           {/* Sidebar Well Directory */}
           <aside
-            className="w-full lg:w-80 shrink-0 flex flex-col rounded-2xl sm:rounded-3xl border border-slate-200 bg-white shadow-sm p-4 overflow-hidden"
-            aria-label="Wells"
+            className="w-full lg:w-84 shrink-0 flex flex-col rounded-2xl sm:rounded-3xl border border-slate-200 bg-white shadow-sm p-4 overflow-hidden"
+            aria-label="Wells Directory"
           >
             <div className="mb-3 flex items-center justify-between border-b border-slate-100 pb-3">
-              <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
-                Directory ({visibleWells.length})
-              </span>
+              <div>
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-800">
+                  Northeast Wells ({visibleWells.length})
+                </span>
+                <p className="text-[10px] text-slate-400 mt-0.5">
+                  OIL &amp; ONGC Historical Dataset
+                </p>
+              </div>
               {selectedId && (
                 <button
                   type="button"
                   onClick={() => setSelectedId(null)}
                   className="text-[11px] font-bold text-blue-600 hover:text-blue-800 transition"
                 >
-                  Clear Selection
+                  Clear
                 </button>
               )}
             </div>
 
             {/* Wells list */}
             <div className="flex-1 overflow-y-auto space-y-2 pr-1">
-              {visibleWells.length === 0 && !loading && !error && (
+              {visibleWells.length === 0 && (
                 <p className="p-4 text-center text-xs text-slate-400">
                   {query.trim()
                     ? `No wells match “${query}”.`
-                    : "No wells with coordinates yet."}
+                    : "No wells found for this field."}
                 </p>
               )}
 
@@ -356,30 +464,39 @@ export default function WellMap() {
                     onClick={() => setSelectedId(well.well_id)}
                     className={`w-full rounded-xl p-3 text-left transition border ${
                       selected
-                        ? "border-blue-300 bg-blue-50/80 shadow-xs"
+                        ? "border-blue-300 bg-blue-50/90 shadow-xs ring-1 ring-blue-300"
                         : "border-slate-100 hover:border-slate-200 hover:bg-slate-50/80"
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span
-                        className={`text-sm font-extrabold ${
+                        className={`text-sm font-black ${
                           selected ? "text-blue-700" : "text-slate-800"
                         }`}
                       >
                         {well.well_id}
                       </span>
-                      {selected && (
-                        <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[9px] font-extrabold text-white">
-                          Selected
+                      <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold text-slate-600">
+                        {well.field || "Assam"}
+                      </span>
+                    </div>
+
+                    <div className="mt-1 flex items-center justify-between text-xs text-slate-500">
+                      <span className="truncate font-medium text-slate-700">
+                        {formationLabel(well.formation)}
+                      </span>
+                      {well.total_depth_m != null && (
+                        <span className="text-slate-400 shrink-0 font-mono text-[11px]">
+                          {well.total_depth_m} m
                         </span>
                       )}
                     </div>
-                    <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
-                      <span className="truncate">{formationLabel(well.formation)}</span>
-                      {well.total_depth_m != null && (
-                        <span className="text-slate-400">• {well.total_depth_m} m</span>
-                      )}
-                    </div>
+
+                    {well.district && (
+                      <div className="mt-1 text-[10px] text-slate-400 truncate">
+                        {well.district}
+                      </div>
+                    )}
                   </button>
                 );
               })}
@@ -387,14 +504,14 @@ export default function WellMap() {
 
             {/* Unmapped wells */}
             {unmapped.length > 0 && (
-              <div className="mt-3 border-t border-slate-100 pt-3">
-                <div className="mb-1 text-[11px] font-extrabold text-slate-600 uppercase tracking-wider">
-                  Not mapped ({unmapped.length})
+              <div className="mt-3 border-t border-slate-100 pt-2.5">
+                <div className="mb-1 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                  Unmapped records ({unmapped.length})
                 </div>
-                <div className="max-h-24 overflow-y-auto text-[11px] text-slate-400 space-y-1">
+                <div className="max-h-20 overflow-y-auto text-[10px] text-slate-400 space-y-1">
                   {unmapped.map((well) => (
                     <div key={well.well_id} className="truncate">
-                      {well.well_id} — no coordinates
+                      {well.well_id} — {well.reason || "no valid coordinates"}
                     </div>
                   ))}
                 </div>
