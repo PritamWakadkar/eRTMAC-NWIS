@@ -1,24 +1,23 @@
-from sentence_transformers import SentenceTransformer
-
 from ..config import EMBEDDING_MODEL
 
 
 class EmbeddingModel:
 
     def __init__(self):
+        self._model = None
 
-        print(
-            f"Loading embedding model: {EMBEDDING_MODEL}"
-        )
+    def _get_model(self):
+        if self._model is None:
+            # Import here so PyTorch is not loaded at startup
+            from sentence_transformers import SentenceTransformer
 
-        self.model = SentenceTransformer(
-            EMBEDDING_MODEL
-        )
+            print(f"Loading embedding model: {EMBEDDING_MODEL}")
+            self._model = SentenceTransformer(EMBEDDING_MODEL)
 
+        return self._model
 
     def encode(self, texts):
-
-        embeddings = self.model.encode(
+        embeddings = self._get_model().encode(
             texts,
             normalize_embeddings=True
         )
