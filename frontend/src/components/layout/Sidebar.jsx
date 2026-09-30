@@ -45,7 +45,7 @@ function Sidebar() {
     const navLinkClass = ({ isActive }) =>
         `flex items-center gap-3.5 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
             isActive
-                ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                ? "bg-black text-white shadow-md shadow-black/20"
                 : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
         }`;
 
@@ -67,7 +67,7 @@ function Sidebar() {
                     {/* Header */}
                     <div className="border-b border-slate-100 p-5">
                         <NavLink to="/" className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-sm font-black text-white shadow-md shadow-blue-500/20">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black text-sm font-black text-white shadow-md shadow-black/20">
                                 NW
                             </div>
                             <div>
@@ -106,7 +106,7 @@ function Sidebar() {
                         <button
                             type="button"
                             onClick={() => window.dispatchEvent(new CustomEvent("open-ai-chat"))}
-                            className="w-full text-left rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-3.5 text-white shadow-lg shadow-blue-500/20 hover:brightness-110 active:scale-[0.98] transition-all duration-200 group"
+                            className="w-full text-left rounded-2xl bg-gradient-to-br from-slate-900 to-black p-3.5 text-white shadow-lg shadow-black/30 hover:brightness-110 active:scale-[0.98] transition-all duration-200 group border border-slate-700/50"
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2.5">
@@ -119,7 +119,7 @@ function Sidebar() {
                                         <span className="text-xs font-extrabold text-white block">
                                             Swarna AI
                                         </span>
-                                        <span className="text-[10px] text-blue-200 block">
+                                        <span className="text-[10px] text-slate-400 block">
                                             Smart Assistant
                                         </span>
                                     </div>
@@ -128,7 +128,7 @@ function Sidebar() {
                                     Online
                                 </span>
                             </div>
-                            <p className="mt-2 text-[11px] text-blue-100 leading-relaxed font-medium">
+                            <p className="mt-2 text-[11px] text-slate-400 leading-relaxed font-medium">
                                 Ask Swarna any question about wells in plain English.
                             </p>
                         </button>
@@ -153,7 +153,7 @@ function Sidebar() {
                 <div className="flex h-full flex-col">
                     <div className="flex items-center justify-between border-b border-slate-100 p-5">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-sm font-black text-white">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black text-sm font-black text-white">
                                 NW
                             </div>
                             <div>
@@ -198,7 +198,7 @@ function Sidebar() {
                                 setOpen(false);
                                 window.dispatchEvent(new CustomEvent("open-ai-chat"));
                             }}
-                            className="w-full text-left rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-3.5 text-white shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all"
+                            className="w-full text-left rounded-2xl bg-gradient-to-br from-slate-900 to-black p-3.5 text-white shadow-lg shadow-black/30 active:scale-[0.98] transition-all border border-slate-700/50"
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2.5">
@@ -211,13 +211,13 @@ function Sidebar() {
                                         <span className="text-xs font-extrabold text-white block">
                                             Swarna AI
                                         </span>
-                                        <span className="text-[10px] text-blue-200 block">
+                                        <span className="text-[10px] text-slate-400 block">
                                             Smart Assistant
                                         </span>
                                     </div>
                                 </div>
                             </div>
-                            <p className="mt-2 text-[11px] text-blue-100 leading-relaxed font-medium">
+                            <p className="mt-2 text-[11px] text-slate-400 leading-relaxed font-medium">
                                 Tap to ask Swarna questions in plain English.
                             </p>
                         </button>
