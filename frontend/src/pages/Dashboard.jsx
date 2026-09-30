@@ -26,7 +26,6 @@ import {
 } from "../services/api";
 import TechText from "../components/common/TechText";
 import SpecularButton from "../components/common/SpecularButton";
-import RippleDistortion from "../components/common/RippleDistortion";
 
 
 // ============================================================
@@ -575,123 +574,75 @@ function Dashboard() {
                         DASHBOARD NAVBAR
                     ================================================== */}
 
-                    {/* ==================================================
-                        RIPPLE HERO BANNER
-                    ================================================== */}
-                    <div className="mb-8 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl" style={{ height: '280px', position: 'relative' }}>
+                    <nav className="mb-8 rounded-2xl border border-slate-800/80 bg-[#000] px-6 py-5 shadow-lg sm:rounded-3xl sm:px-8">
 
-                        {/* WebGL Ripple Background */}
-                        <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
-                            <RippleDistortion
-                                src="https://images.unsplash.com/photo-1508739773434-c26b3d09e071?q=80&w=2070&auto=format&fit=crop"
-                                brushSize={180}
-                                strength={0.18}
-                                swirl={1.2}
-                                rings={5}
-                                spread={6}
-                                fade={4}
-                                spacing={12}
-                                dispersion={0.04}
-                                glint={0.6}
-                                tint="#38bdf8"
-                                tintAmount={0.18}
-                                grayscale={false}
-                                highlightColor="#7dd3fc"
-                                trigger="both"
-                                clickStrength={3}
-                                quality="medium"
-                            />
+                        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+
+                            {/* Brand & Subtitle */}
+                            <div className="max-w-3xl">
+
+                                <h1 className="sr-only">eRTMAC-NWIS</h1>
+
+                                <div className="h-10 w-56 sm:h-12 sm:w-72">
+                                    <TechText
+                                        text="eRTMAC-NWIS"
+                                        fontWeight={900}
+                                        fontSize={60}
+                                        color="#ffffff"
+                                        accentColor="#38bdf8"
+                                        reveal="letter"
+                                        dashLength={4}
+                                        dashGap={2}
+                                        specks={15}
+                                    />
+                                </div>
+
+                            </div>
+
+                            {/* Nav Buttons */}
+                            <div className="flex flex-wrap items-center gap-3 shrink-0">
+
+                                <SpecularButton
+                                    size="sm"
+                                    radius={14}
+                                    tint="#ffffff"
+                                    tintOpacity={1}
+                                    textColor="#172033"
+                                    lineColor="#38bdf8"
+                                    baseColor="#cbd5e1"
+                                    intensity={1.2}
+                                    onClick={() => navigate("/analysis")}
+                                    className="font-extrabold shadow-sm"
+                                >
+                                    <Search className="h-4 w-4" />
+                                    <span>Start Well Analysis</span>
+                                    <ArrowRight className="h-4 w-4" />
+                                </SpecularButton>
+
+                                <SpecularButton
+                                    size="sm"
+                                    radius={14}
+                                    tint="#0f172a"
+                                    tintOpacity={0.8}
+                                    textColor="#ffffff"
+                                    lineColor="#a855f7"
+                                    baseColor="#334155"
+                                    intensity={1.2}
+                                    onClick={() => navigate("/prediction")}
+                                    className="font-extrabold border border-slate-700/60"
+                                >
+                                    <BrainCircuit className="h-4 w-4" />
+                                    <span>Open Prediction</span>
+                                </SpecularButton>
+
+                            </div>
+
                         </div>
 
-                        {/* Dark overlay for text legibility */}
-                        <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(135deg, rgba(2,6,23,0.78) 0%, rgba(15,23,42,0.55) 60%, rgba(2,6,23,0.75) 100%)' }} />
-
-                        {/* Content layer */}
-                        <nav style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '28px 32px 24px' }}>
-
-                            {/* Top row: brand + buttons */}
-                            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-
-                                {/* Brand */}
-                                <div className="max-w-3xl">
-
-                                    <h1 className="sr-only">eRTMAC-NWIS</h1>
-
-                                    <div className="h-10 w-56 sm:h-12 sm:w-72">
-                                        <TechText
-                                            text="eRTMAC-NWIS"
-                                            fontWeight={900}
-                                            fontSize={60}
-                                            color="#ffffff"
-                                            accentColor="#38bdf8"
-                                            reveal="letter"
-                                            dashLength={4}
-                                            dashGap={2}
-                                            specks={15}
-                                        />
-                                    </div>
-
-                                </div>
-
-                                {/* Nav Buttons */}
-                                <div className="flex flex-wrap items-center gap-3 shrink-0">
-
-                                    <SpecularButton
-                                        size="sm"
-                                        radius={14}
-                                        tint="#ffffff"
-                                        tintOpacity={1}
-                                        textColor="#172033"
-                                        lineColor="#38bdf8"
-                                        baseColor="#cbd5e1"
-                                        intensity={1.2}
-                                        onClick={() => navigate("/analysis")}
-                                        className="font-extrabold shadow-sm"
-                                    >
-                                        <Search className="h-4 w-4" />
-                                        <span>Start Well Analysis</span>
-                                        <ArrowRight className="h-4 w-4" />
-                                    </SpecularButton>
-
-                                    <SpecularButton
-                                        size="sm"
-                                        radius={14}
-                                        tint="#0f172a"
-                                        tintOpacity={0.8}
-                                        textColor="#ffffff"
-                                        lineColor="#a855f7"
-                                        baseColor="#334155"
-                                        intensity={1.2}
-                                        onClick={() => navigate("/prediction")}
-                                        className="font-extrabold border border-slate-700/60"
-                                    >
-                                        <BrainCircuit className="h-4 w-4" />
-                                        <span>Open Prediction</span>
-                                    </SpecularButton>
-
-                                </div>
-
-                            </div>
-
-                            {/* Bottom row: tagline */}
-                            <div>
-                                <p style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '4px' }}>
-                                    OIL India Limited · Northeast India Operations
-                                </p>
-                                <p style={{ color: '#e2e8f0', fontSize: '18px', fontWeight: 700, lineHeight: 1.3 }}>
-                                    Real-Time Monitoring &amp; Analytical Centre
-                                </p>
-                                <p style={{ color: '#64748b', fontSize: '12px', marginTop: '4px' }}>
-                                    Move your cursor over the banner to interact with the effect
-                                </p>
-                            </div>
-
-                        </nav>
-
-                    </div>
+                    </nav>
 
 
-
+{/* hiii */}
 
 
                     {/* ==================================================

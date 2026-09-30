@@ -210,7 +210,7 @@ function Prediction() {
 
     return (
 
-        <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40">
+        <main className="min-h-screen">
 
             <div className="mx-auto max-w-[1400px] px-6 py-8 max-sm:px-4">
 
